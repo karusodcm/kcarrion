@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="ejecutivo">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Inventario de Intereses Vocacionales y Ocupacionales</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo" aria-hidden="true">IV</span>
+        <div>
+          <h1>Inventario de Intereses Vocacionales y Ocupacionales</h1>
+          <p class="codigo">CASM83-R91</p>
+        </div>
+      </div>
+      <div class="theme-switch" role="group" aria-label="Cambiar tema">
+        <button type="button" data-theme-btn="ejecutivo">Ejecutivo</button>
+        <button type="button" data-theme-btn="amigable">Amigable</button>
+      </div>
+    </header>
+
+    <main>
+      <!-- INTRODUCCIÓN -->
+      <section id="screen-intro" class="card">
+        <h2>Instrucciones</h2>
+        <p>
+          Este inventario te mostrará <strong id="total-intro">143</strong> pares de preguntas para conocer
+          tus preferencias profesionales y ocupacionales. En cada par, elige la alternativa
+          que más te interese.
+        </p>
+        <ul class="reglas">
+          <li>Marca <strong>a</strong>, <strong>b</strong> o <strong>ambas</strong> si las dos te interesan.</li>
+          <li>Verás varias preguntas por pantalla, según el alto de tu pantalla. Debes marcar al menos una opción en cada una para poder avanzar.</li>
+          <li><strong>No hay respuestas buenas ni malas.</strong> Responde según lo que realmente te interesa y no según lo que otros opinarían.</li>
+          <li>Puedes volver atrás y cambiar tus respuestas cuando quieras.</li>
+        </ul>
+        <div class="acciones">
+          <button type="button" id="btn-continuar" class="btn btn-secundario hidden">Continuar donde quedé</button>
+          <button type="button" id="btn-comenzar" class="btn btn-primario">Comenzar</button>
+        </div>
+      </section>
+
+      <!-- CUESTIONARIO -->
+      <section id="screen-quiz" class="card hidden">
+        <div class="progreso-info">
+          <span id="contador">Preguntas 1 de 143</span>
+          <span id="porcentaje">0%</span>
+        </div>
+        <div class="barra" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="barra">
+          <div class="barra-fill" id="barra-fill"></div>
+        </div>
+
+        <div id="lista" class="lista"></div>
+
+        <p id="mensaje" class="mensaje" role="alert"></p>
+
+        <div class="nav">
+          <button type="button" id="btn-atras" class="btn btn-secundario">&larr; Atrás</button>
+          <button type="button" id="btn-siguiente" class="btn btn-primario">Siguiente &rarr;</button>
+        </div>
+      </section>
+
+      <!-- FINAL -->
+      <section id="screen-end" class="card hidden">
+        <h2>¡Cuestionario completado!</h2>
+        <p>Gracias por responder las <strong id="total-fin">143</strong> preguntas. Este es el resumen de tus respuestas:</p>
+        <div class="resumen">
+          <div class="dato"><span class="num" id="res-a">0</span><span>Solo a</span></div>
+          <div class="dato"><span class="num" id="res-b">0</span><span>Solo b</span></div>
+          <div class="dato"><span class="num" id="res-ab">0</span><span>Ambas</span></div>
+        </div>
+
+        <h3>Revisar o corregir respuestas</h3>
+        <p class="ayuda">Toca un número para volver a esa pregunta.</p>
+        <div id="grilla" class="grilla"></div>
+
+        <div class="acciones">
+          <button type="button" id="btn-csv" class="btn btn-secundario">Descargar respuestas (CSV)</button>
+          <button type="button" id="btn-reiniciar" class="btn btn-peligro">Reiniciar</button>
+        </div>
+      </section>
+    </main>
+
+    <footer class="pie">Inventario CASM83-R91 · Tus respuestas se guardan solo en este navegador.</footer>
+  </div>
+
+  <script src="preguntas.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
