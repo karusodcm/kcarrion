@@ -29,7 +29,8 @@
         <h2>Instrucciones</h2>
         <p>
           Este inventario te mostrará <strong id="total-intro">143</strong> pares de preguntas para conocer
-          tus preferencias profesionales y ocupacionales. En cada par, elige la alternativa
+          tus preferencias profesionales y ocupacionales. Primero completarás tus datos personales y una
+          breve encuesta vocacional; luego, en cada par de preguntas, elegirás la alternativa
           que más te interese.
         </p>
         <ul class="reglas">
@@ -44,7 +45,136 @@
         </div>
       </section>
 
-      <!-- CUESTIONARIO -->
+      <!-- PASO 1: DATOS PERSONALES -->
+      <section id="screen-datos" class="card hidden">
+        <p class="paso">Paso 1 de 3</p>
+        <h2>Datos personales</h2>
+        <form id="form-datos" novalidate autocomplete="off">
+          <div class="form-grid">
+            <div class="campo ancho">
+              <label for="apellidos">Apellidos y nombres</label>
+              <input id="apellidos" type="text">
+              <small class="err" data-err="apellidos"></small>
+            </div>
+
+            <div class="campo">
+              <label for="edad">Edad</label>
+              <input id="edad" type="number" inputmode="numeric" min="4" max="99">
+              <small class="err" data-err="edad"></small>
+            </div>
+
+            <div class="campo">
+              <label for="lugar">Lugar de nacimiento</label>
+              <input id="lugar" type="text">
+              <small class="err" data-err="lugar"></small>
+            </div>
+
+            <div class="campo ancho">
+              <span class="etiqueta">Fecha de nacimiento</span>
+              <div class="fecha-fila">
+                <input id="dia" type="number" inputmode="numeric" min="1" max="31" placeholder="Día" aria-label="Día">
+                <select id="mes" aria-label="Mes">
+                  <option value="">Mes</option>
+                  <option value="1">Enero</option>
+                  <option value="2">Febrero</option>
+                  <option value="3">Marzo</option>
+                  <option value="4">Abril</option>
+                  <option value="5">Mayo</option>
+                  <option value="6">Junio</option>
+                  <option value="7">Julio</option>
+                  <option value="8">Agosto</option>
+                  <option value="9">Septiembre</option>
+                  <option value="10">Octubre</option>
+                  <option value="11">Noviembre</option>
+                  <option value="12">Diciembre</option>
+                </select>
+                <input id="anio" type="number" inputmode="numeric" min="1900" placeholder="Año" aria-label="Año">
+              </div>
+              <small class="err" data-err="fecha"></small>
+            </div>
+
+            <div class="campo ancho">
+              <label for="centro">Centro educativo</label>
+              <input id="centro" type="text">
+              <small class="err" data-err="centro"></small>
+            </div>
+
+            <div class="campo">
+              <label for="grado">Grado de instrucción</label>
+              <input id="grado" type="text" list="lista-grados">
+              <datalist id="lista-grados">
+                <option value="Primaria">
+                <option value="1.° de secundaria">
+                <option value="2.° de secundaria">
+                <option value="3.° de secundaria">
+                <option value="4.° de secundaria">
+                <option value="5.° de secundaria">
+                <option value="Superior técnico">
+                <option value="Superior universitario">
+              </datalist>
+              <small class="err" data-err="grado"></small>
+            </div>
+
+            <div class="campo">
+              <label for="examinador">Examinador</label>
+              <input id="examinador" type="text">
+              <small class="err" data-err="examinador"></small>
+            </div>
+          </div>
+
+          <p id="msg-datos" class="mensaje" role="alert"></p>
+
+          <div class="nav">
+            <button type="button" id="datos-atras" class="btn btn-secundario">&larr; Atrás</button>
+            <button type="submit" class="btn btn-primario">Siguiente &rarr;</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- PASO 2: ENCUESTA VOCACIONAL -->
+      <section id="screen-encuesta" class="card hidden">
+        <p class="paso">Paso 2 de 3</p>
+        <h2>Encuesta vocacional</h2>
+        <p class="ayuda">Escribe tus tres opciones en cada grupo, de la que más te gusta (1º) a la que menos (3º).</p>
+        <form id="form-encuesta" novalidate autocomplete="off">
+
+          <fieldset class="grupo">
+            <legend>Escriba en orden de preferencia tres oficios que le gustaría tener:</legend>
+            <div class="trio">
+              <div class="campo"><label for="oficio1">1º</label><input id="oficio1" type="text"></div>
+              <div class="campo"><label for="oficio2">2º</label><input id="oficio2" type="text"></div>
+              <div class="campo"><label for="oficio3">3º</label><input id="oficio3" type="text"></div>
+            </div>
+          </fieldset>
+
+          <fieldset class="grupo">
+            <legend>Escriba en orden de preferencia tres carreras técnicas que le gustaría seguir:</legend>
+            <div class="trio">
+              <div class="campo"><label for="tecnica1">1º</label><input id="tecnica1" type="text"></div>
+              <div class="campo"><label for="tecnica2">2º</label><input id="tecnica2" type="text"></div>
+              <div class="campo"><label for="tecnica3">3º</label><input id="tecnica3" type="text"></div>
+            </div>
+          </fieldset>
+
+          <fieldset class="grupo">
+            <legend>Escriba en orden de preferencia tres carreras profesionales que le gustaría seguir:</legend>
+            <div class="trio">
+              <div class="campo"><label for="carrera1">1º</label><input id="carrera1" type="text"></div>
+              <div class="campo"><label for="carrera2">2º</label><input id="carrera2" type="text"></div>
+              <div class="campo"><label for="carrera3">3º</label><input id="carrera3" type="text"></div>
+            </div>
+          </fieldset>
+
+          <p id="msg-encuesta" class="mensaje" role="alert"></p>
+
+          <div class="nav">
+            <button type="button" id="encuesta-atras" class="btn btn-secundario">&larr; Atrás</button>
+            <button type="submit" class="btn btn-primario">Siguiente &rarr;</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- PASO 3: CUESTIONARIO -->
       <section id="screen-quiz" class="card hidden">
         <div class="progreso-info">
           <span id="contador">Preguntas 1 de 143</span>
@@ -68,11 +198,20 @@
       <section id="screen-end" class="card hidden">
         <h2>¡Cuestionario completado!</h2>
         <p>Gracias por responder las <strong id="total-fin">143</strong> preguntas. Este es el resumen de tus respuestas:</p>
+        <dl id="ficha" class="ficha"></dl>
         <div class="resumen">
           <div class="dato"><span class="num" id="res-a">0</span><span>Solo a</span></div>
           <div class="dato"><span class="num" id="res-b">0</span><span>Solo b</span></div>
           <div class="dato"><span class="num" id="res-ab">0</span><span>Ambas</span></div>
         </div>
+
+        <h3>Tabla de respuestas</h3>
+        <p class="ayuda">Cada casilla es una pregunta (1 a 143, por filas). La <strong>A</strong> suma en su columna y la <strong>B</strong> suma en su fila.</p>
+        <div class="tabla-wrap"><table id="tabla-resultados" class="tabla"></table></div>
+
+        <h3>Puntajes por área</h3>
+        <p class="ayuda">PD = A de la columna + B de la fila. VERA y CONS no tienen fila, así que solo suman la columna.</p>
+        <div class="tabla-wrap tabla-angosta"><table id="tabla-puntajes" class="tabla"></table></div>
 
         <h3>Revisar o corregir respuestas</h3>
         <p class="ayuda">Toca un número para volver a esa pregunta.</p>

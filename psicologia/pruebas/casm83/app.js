@@ -10,9 +10,34 @@
   const CLAVE_GUARDADO = 'casm83-r91-progreso';
   const CLAVE_TEMA = 'casm83-r91-tema';
 
-  // Estado: respuestas[i] = '' (sin responder) | 'a' | 'b' | 'ab'
-  // indice = primera pregunta de la página que se está mostrando
-  let estado = { indice: 0, respuestas: new Array(TOTAL).fill('') };
+  const CAMPOS_DATOS = ['apellidos', 'edad', 'lugar', 'dia', 'mes', 'anio', 'centro', 'grado', 'examinador'];
+  const CAMPOS_ENCUESTA = [
+    'oficio1', 'oficio2', 'oficio3',
+    'tecnica1', 'tecnica2', 'tecnica3',
+    'carrera1', 'carrera2', 'carrera3'
+  ];
+  const ETAPAS = ['datos', 'encuesta', 'quiz'];
+  const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio',
+    'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+
+  // Hoja de respuestas: los ítems se leen por filas (1-13, 14-26, ...).
+  // Filas: las 11 primeras áreas. Columnas: las 13 áreas (incluye VERA y CONS).
+  const AREAS = ['CCFM', 'CCSS', 'CCNA', 'CCCO', 'ARTE', 'BURO', 'CCEP', 'HAA', 'FINA', 'LING', 'JURI', 'VERA', 'CONS'];
+  const COLUMNAS = AREAS.length;                 // 13
+  const FILAS = Math.ceil(TOTAL / COLUMNAS);     // 11
+
+  // Estado:
+  //   etapa: 'datos' | 'encuesta' | 'quiz'
+  //   indice: primera pregunta de la página que se está mostrando
+  //   respuestas[i]: '' (sin responder) | 'a' | 'b' | 'ab'
+  const nuevoEstado = () => ({
+    etapa: 'datos',
+    indice: 0,
+    respuestas: new Array(TOTAL).fill(''),
+    datos: {},
+    encuesta: {}
+  });
+  let estado = nuevoEstado();
 
   // Índices de las preguntas visibles en la página actual
   let visibles = [];
@@ -23,9 +48,13 @@
 
   const pantallas = {
     intro: $('screen-intro'),
+    datos: $('screen-datos'),
+    encuesta: $('screen-encuesta'),
     quiz: $('screen-quiz'),
     fin: $('screen-end')
   };
+
+  const enQuiz = () => !pantallas.quiz.classList.contains('hidden');
 
   function mostrar(nombre) {
     Object.entries(pantallas).forEach(([k, el]) => el.classList.toggle('hidden', k !== nombre));
@@ -33,8 +62,22 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  // ===== Guardado local =====
   function guardar() {
     try { localStorage.setItem(CLAVE_GUARDADO, JSON.stringify(estado)); } catch (e) { /* sin almacenamiento */ }
+  }
+
+  function soloTexto(obj, campos) {
+    const r = {};
+    campos.forEach((c) => {
+      if (obj && typeof obj[c] === 'string') r[c] = obj[c];
+    });
+    return r;
+  }
+
+  function hayProgreso() {
+    const lleno = (o) => Object.values(o).some((v) => String(v).trim() !== '');
+    return estado.respuestas.some((r) => r !== '') || lleno(estado.datos) || lleno(estado.encuesta);
   }
 
   function cargar() {
@@ -44,10 +87,17 @@
       const g = JSON.parse(raw);
       if (!g || !Array.isArray(g.respuestas) || g.respuestas.length !== TOTAL) return false;
       estado = {
+        etapa: 'datos',
         indice: Math.min(Math.max(Number(g.indice) || 0, 0), TOTAL - 1),
-        respuestas: g.respuestas.map((r) => (['a', 'b', 'ab'].includes(r) ? r : ''))
+        respuestas: g.respuestas.map((r) => (['a', 'b', 'ab'].includes(r) ? r : '')),
+        datos: soloTexto(g.datos, CAMPOS_DATOS),
+        encuesta: soloTexto(g.encuesta, CAMPOS_ENCUESTA)
       };
-      return estado.respuestas.some((r) => r !== '');
+      const pedida = ETAPAS.includes(g.etapa)
+        ? g.etapa
+        : (estado.respuestas.some((r) => r !== '') ? 'quiz' : 'datos');
+      estado.etapa = etapaPermitida(pedida);
+      return hayProgreso();
     } catch (e) {
       return false;
     }
@@ -67,14 +117,142 @@
   }
 
   // ===== Mensajes =====
-  function mensaje(texto, error = false) {
-    const m = $('mensaje');
-    m.textContent = texto;
-    m.classList.remove('sacudir');
+  function mensaje(texto, error = false, el = $('mensaje')) {
+    el.textContent = texto;
+    el.classList.remove('sacudir');
     if (error) {
-      void m.offsetWidth; // reinicia la animación
-      m.classList.add('sacudir');
+      void el.offsetWidth; // reinicia la animación
+      el.classList.add('sacudir');
     }
+  }
+
+  // ===== Formularios: datos personales y encuesta =====
+  const hayErrores = (e) => Object.keys(e).length > 0;
+
+  function fechaValida(d, m, a) {
+    if (![d, m, a].every(Number.isInteger)) return false;
+    const hoy = new Date();
+    if (a < 1900 || a > hoy.getFullYear()) return false;
+    const f = new Date(a, m - 1, d);
+    return f.getFullYear() === a && f.getMonth() === m - 1 && f.getDate() === d && f <= hoy;
+  }
+
+  function validarDatos(d) {
+    const e = {};
+    const v = (k) => (d[k] || '').trim();
+
+    ['apellidos', 'lugar', 'centro', 'grado', 'examinador'].forEach((k) => {
+      if (!v(k)) e[k] = 'Este dato es obligatorio.';
+    });
+
+    const edad = Number(v('edad'));
+    if (!v('edad')) e.edad = 'Ingresa la edad.';
+    else if (!Number.isInteger(edad) || edad < 4 || edad > 99) e.edad = 'Edad no válida.';
+
+    if (!v('dia') || !v('mes') || !v('anio')) {
+      e.fecha = 'Completa día, mes y año.';
+    } else if (!fechaValida(Number(v('dia')), Number(v('mes')), Number(v('anio')))) {
+      e.fecha = 'La fecha de nacimiento no es válida.';
+    }
+    return e;
+  }
+
+  function validarEncuesta(d) {
+    const e = {};
+    CAMPOS_ENCUESTA.forEach((k) => {
+      if (!(d[k] || '').trim()) e[k] = 'Completa este campo.';
+    });
+    return e;
+  }
+
+  // Devuelve la etapa más avanzada a la que se puede entrar con los datos actuales
+  function etapaPermitida(pedida) {
+    if (pedida === 'datos') return 'datos';
+    if (hayErrores(validarDatos(estado.datos))) return 'datos';
+    if (pedida === 'encuesta') return 'encuesta';
+    if (hayErrores(validarEncuesta(estado.encuesta))) return 'encuesta';
+    return 'quiz';
+  }
+
+  const leerCampos = (campos) => {
+    const r = {};
+    campos.forEach((c) => { r[c] = $(c).value; });
+    return r;
+  };
+
+  function llenarCampos(campos, valores) {
+    campos.forEach((c) => { $(c).value = valores[c] || ''; });
+  }
+
+  function pintarErrores(form, errores) {
+    form.querySelectorAll('.error').forEach((el) => {
+      el.classList.remove('error');
+      el.removeAttribute('aria-invalid');
+    });
+    form.querySelectorAll('[data-err]').forEach((s) => { s.textContent = errores[s.dataset.err] || ''; });
+    Object.keys(errores).forEach((k) => {
+      const ids = k === 'fecha' ? ['dia', 'mes', 'anio'] : [k];
+      ids.forEach((id) => {
+        $(id).classList.add('error');
+        $(id).setAttribute('aria-invalid', 'true');
+      });
+    });
+  }
+
+  // Aviso general de un formulario con errores
+  function avisarErrores(form, errores, msgEl) {
+    const n = Object.keys(errores).length;
+    mensaje(n === 1
+      ? 'Revisa el campo marcado en rojo.'
+      : `Revisa los ${n} campos marcados en rojo.`, true, msgEl);
+    const primero = form.querySelector('.error');
+    if (primero) {
+      primero.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      primero.focus({ preventScroll: true });
+    }
+  }
+
+  function enlazarFormulario(form, campos, clave, msgEl) {
+    // Guarda lo escrito al instante y quita el error del campo que se está corrigiendo
+    const alEscribir = (e) => {
+      const t = e.target;
+      if (!t || !t.id) return;
+      t.classList.remove('error');
+      t.removeAttribute('aria-invalid');
+      const clavErr = ['dia', 'mes', 'anio'].includes(t.id) ? 'fecha' : t.id;
+      const s = form.querySelector(`[data-err="${clavErr}"]`);
+      if (s) s.textContent = '';
+      estado[clave] = leerCampos(campos);
+      guardar();
+      if (!form.querySelector('.error')) mensaje('', false, msgEl);
+    };
+    form.addEventListener('input', alEscribir);
+    form.addEventListener('change', alEscribir);
+  }
+
+  function recortar(campos, valores) {
+    const r = {};
+    campos.forEach((c) => { r[c] = (valores[c] || '').trim(); });
+    return r;
+  }
+
+  // ===== Navegación entre etapas =====
+  function ir(etapa) {
+    estado.etapa = etapa;
+    guardar();
+
+    if (etapa === 'datos') {
+      llenarCampos(CAMPOS_DATOS, estado.datos);
+      pintarErrores($('form-datos'), {});
+      mensaje('', false, $('msg-datos'));
+    } else if (etapa === 'encuesta') {
+      llenarCampos(CAMPOS_ENCUESTA, estado.encuesta);
+      pintarErrores($('form-encuesta'), {});
+      mensaje('', false, $('msg-encuesta'));
+    }
+
+    mostrar(etapa);
+    if (etapa === 'quiz') render('adelante', estado.indice);
   }
 
   // ===== Construcción de preguntas =====
@@ -169,13 +347,14 @@
     guardar();
 
     const ultima = visibles[visibles.length - 1];
-    $('btn-atras').disabled = estado.indice === 0;
+    // En la primera página, Atrás vuelve a la encuesta vocacional
+    $('btn-atras').disabled = false;
     $('btn-siguiente').innerHTML = ultima === TOTAL - 1 ? 'Finalizar &#10003;' : 'Siguiente &rarr;';
     mensaje('');
     actualizarProgreso();
   }
 
-  // ===== Interacción =====
+  // ===== Interacción del cuestionario =====
   function alternar(i, letra, bloque) {
     let r = estado.respuestas[i];
 
@@ -227,17 +406,117 @@
   }
 
   function atras() {
-    if (estado.indice === 0) return;
+    if (estado.indice === 0) {
+      ir('encuesta');
+      return;
+    }
     render('atras', estado.indice - 1);
   }
 
   // ===== Pantalla final =====
+  const dos = (n) => String(n).padStart(2, '0');
+
+  function textoFecha() {
+    const d = estado.datos;
+    return `${dos(Number(d.dia))}/${dos(Number(d.mes))}/${Number(d.anio)}`;
+  }
+
+  function filasFicha() {
+    const d = estado.datos;
+    const e = estado.encuesta;
+    const trio = (a, b, c) => `1º ${e[a]} · 2º ${e[b]} · 3º ${e[c]}`;
+    return [
+      ['Apellidos y nombres', d.apellidos],
+      ['Edad', d.edad],
+      ['Lugar de nacimiento', d.lugar],
+      ['Fecha de nacimiento', `${Number(d.dia)} de ${MESES[Number(d.mes) - 1]} de ${Number(d.anio)}`],
+      ['Centro educativo', d.centro],
+      ['Grado de instrucción', d.grado],
+      ['Examinador', d.examinador],
+      ['Oficios', trio('oficio1', 'oficio2', 'oficio3')],
+      ['Carreras técnicas', trio('tecnica1', 'tecnica2', 'tecnica3')],
+      ['Carreras profesionales', trio('carrera1', 'carrera2', 'carrera3')]
+    ];
+  }
+
+  // La A suma en la columna de su casilla y la B suma en la fila.
+  // Si se marcaron ambas, cuenta en las dos.
+  function calcularPuntajes() {
+    const colA = new Array(COLUMNAS).fill(0);
+    const filaB = new Array(FILAS).fill(0);
+    estado.respuestas.forEach((r, i) => {
+      if (r.includes('a')) colA[i % COLUMNAS]++;
+      if (r.includes('b')) filaB[Math.floor(i / COLUMNAS)]++;
+    });
+    const pd = AREAS.map((_, k) => colA[k] + (k < FILAS ? filaB[k] : 0));
+    return { colA, filaB, pd };
+  }
+
+  function celda(tag, texto, clase) {
+    const el = document.createElement(tag);
+    if (texto !== undefined) el.textContent = texto;
+    if (clase) el.className = clase;
+    return el;
+  }
+
+  function armarTablas() {
+    const { colA, filaB, pd } = calcularPuntajes();
+
+    // Tabla de respuestas (11 filas x 13 columnas) con totales
+    const t = $('tabla-resultados');
+    t.innerHTML = '';
+
+    const cabecera = t.createTHead().insertRow();
+    cabecera.appendChild(celda('th', ''));
+    AREAS.forEach((a) => cabecera.appendChild(celda('th', a)));
+    cabecera.appendChild(celda('th', 'Σ B fila'));
+
+    const cuerpo = t.createTBody();
+    for (let f = 0; f < FILAS; f++) {
+      const tr = cuerpo.insertRow();
+      const th = celda('th', AREAS[f]);
+      th.scope = 'row';
+      tr.appendChild(th);
+      for (let c = 0; c < COLUMNAS; c++) {
+        const i = f * COLUMNAS + c;
+        const r = estado.respuestas[i];
+        const td = celda('td', undefined, 'celda');
+        td.appendChild(celda('span', String(i + 1), 'n'));
+        td.appendChild(celda('span', 'A', 'm a' + (r.includes('a') ? ' on' : '')));
+        td.appendChild(celda('span', 'B', 'm b' + (r.includes('b') ? ' on' : '')));
+        tr.appendChild(td);
+      }
+      tr.appendChild(celda('td', String(filaB[f]), 'tot'));
+    }
+
+    const pie = t.createTFoot().insertRow();
+    pie.appendChild(celda('th', 'Σ A col.'));
+    colA.forEach((n) => pie.appendChild(celda('td', String(n))));
+    pie.appendChild(celda('td', ''));
+
+    // Puntajes por área
+    const p = $('tabla-puntajes');
+    p.innerHTML = '';
+    const ph = p.createTHead().insertRow();
+    ['Área', 'A (columna)', 'B (fila)', 'PD'].forEach((x) => ph.appendChild(celda('th', x)));
+    const pb = p.createTBody();
+    AREAS.forEach((a, k) => {
+      const tr = pb.insertRow();
+      const th = celda('th', a);
+      th.scope = 'row';
+      tr.appendChild(th);
+      tr.appendChild(celda('td', String(colA[k])));
+      tr.appendChild(celda('td', k < FILAS ? String(filaB[k]) : '—'));
+      tr.appendChild(celda('td', String(pd[k]), 'tot'));
+    });
+  }
+
   function finalizar() {
     const faltaIdx = estado.respuestas.findIndex((r) => r === '');
     if (faltaIdx !== -1) {
       render('adelante', faltaIdx);
-      const n = marcarFaltantes();
-      mensaje(`Aún quedan preguntas sin responder (la primera es la ${faltaIdx + 1}).`, n >= 0);
+      marcarFaltantes();
+      mensaje(`Aún quedan preguntas sin responder (la primera es la ${faltaIdx + 1}).`, true);
       return;
     }
 
@@ -246,6 +525,19 @@
     $('res-a').textContent = cuenta.a;
     $('res-b').textContent = cuenta.b;
     $('res-ab').textContent = cuenta.ab;
+
+    // Los datos escritos por la persona se insertan como texto, nunca como HTML
+    const ficha = $('ficha');
+    ficha.innerHTML = '';
+    filasFicha().forEach(([titulo, valor]) => {
+      const dt = document.createElement('dt');
+      dt.textContent = titulo;
+      const dd = document.createElement('dd');
+      dd.textContent = valor;
+      ficha.append(dt, dd);
+    });
+
+    armarTablas();
 
     const grilla = $('grilla');
     grilla.innerHTML = '';
@@ -256,6 +548,9 @@
       chip.innerHTML = `${idx + 1}<small>${r === 'ab' ? 'a+b' : r}</small>`;
       chip.setAttribute('aria-label', `Pregunta ${idx + 1}, respuesta ${r === 'ab' ? 'a y b' : r}`);
       chip.addEventListener('click', () => {
+        estado.etapa = 'quiz';
+        estado.indice = idx;
+        guardar();
         mostrar('quiz');
         render('adelante', idx);
       });
@@ -266,9 +561,42 @@
   }
 
   function descargarCSV() {
-    const filas = ['pregunta,respuesta'];
-    estado.respuestas.forEach((r, i) => filas.push(`${i + 1},${r}`));
-    const blob = new Blob(['﻿' + filas.join('\n')], { type: 'text/csv;charset=utf-8' });
+    const esc = (v) => `"${String(v).replace(/"/g, '""')}"`;
+    const d = estado.datos;
+    const e = estado.encuesta;
+    const filas = [['sección', 'campo', 'valor']];
+
+    const datos = [
+      ['Apellidos y nombres', d.apellidos],
+      ['Edad', d.edad],
+      ['Lugar de nacimiento', d.lugar],
+      ['Fecha de nacimiento', textoFecha()],
+      ['Centro educativo', d.centro],
+      ['Grado de instrucción', d.grado],
+      ['Examinador', d.examinador]
+    ];
+    datos.forEach(([c, v]) => filas.push(['Datos personales', c, v]));
+
+    const grupos = [
+      ['Oficio', 'oficio'],
+      ['Carrera técnica', 'tecnica'],
+      ['Carrera profesional', 'carrera']
+    ];
+    grupos.forEach(([nombre, pref]) => {
+      [1, 2, 3].forEach((n) => filas.push(['Encuesta vocacional', `${nombre} ${n}º`, e[pref + n]]));
+    });
+
+    estado.respuestas.forEach((r, i) => filas.push(['Cuestionario', `Pregunta ${i + 1}`, r]));
+
+    const { colA, filaB, pd } = calcularPuntajes();
+    AREAS.forEach((a, k) => {
+      filas.push(['Puntajes', `${a} · A (columna)`, colA[k]]);
+      if (k < FILAS) filas.push(['Puntajes', `${a} · B (fila)`, filaB[k]]);
+      filas.push(['Puntajes', `${a} · PD`, pd[k]]);
+    });
+
+    const csv = filas.map((f) => f.map(esc).join(',')).join('\n');
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const enlace = document.createElement('a');
     enlace.href = url;
@@ -280,8 +608,8 @@
   }
 
   function reiniciar() {
-    if (!confirm('¿Seguro que quieres borrar todas tus respuestas y empezar de nuevo?')) return;
-    estado = { indice: 0, respuestas: new Array(TOTAL).fill('') };
+    if (!confirm('¿Seguro que quieres borrar todos tus datos y respuestas y empezar de nuevo?')) return;
+    estado = nuevoEstado();
     borrarGuardado();
     $('btn-continuar').classList.add('hidden');
     mostrar('intro');
@@ -292,20 +620,58 @@
   $('total-fin').textContent = TOTAL;
 
   $('btn-comenzar').addEventListener('click', () => {
-    if (estado.respuestas.some((r) => r !== '')) {
-      if (!confirm('Ya tienes respuestas guardadas. ¿Quieres empezar de nuevo y borrarlas?')) return;
-      estado = { indice: 0, respuestas: new Array(TOTAL).fill('') };
+    if (hayProgreso()) {
+      if (!confirm('Ya tienes datos o respuestas guardadas. ¿Quieres empezar de nuevo y borrarlas?')) return;
+      estado = nuevoEstado();
       borrarGuardado();
     }
-    mostrar('quiz');
-    render('adelante', 0);
+    ir('datos');
   });
 
-  $('btn-continuar').addEventListener('click', () => {
-    mostrar('quiz');
-    render('adelante', estado.indice);
+  $('btn-continuar').addEventListener('click', () => ir(etapaPermitida(estado.etapa)));
+
+  // Paso 1: datos personales
+  enlazarFormulario($('form-datos'), CAMPOS_DATOS, 'datos', $('msg-datos'));
+  $('form-datos').addEventListener('submit', (ev) => {
+    ev.preventDefault();
+    estado.datos = recortar(CAMPOS_DATOS, leerCampos(CAMPOS_DATOS));
+    const errores = validarDatos(estado.datos);
+    pintarErrores($('form-datos'), errores);
+    if (hayErrores(errores)) {
+      guardar();
+      avisarErrores($('form-datos'), errores, $('msg-datos'));
+      return;
+    }
+    ir('encuesta');
+  });
+  $('datos-atras').addEventListener('click', () => {
+    estado.datos = leerCampos(CAMPOS_DATOS);
+    guardar();
+    mostrar('intro');
+    if (hayProgreso()) $('btn-continuar').classList.remove('hidden');
   });
 
+  // Paso 2: encuesta vocacional
+  enlazarFormulario($('form-encuesta'), CAMPOS_ENCUESTA, 'encuesta', $('msg-encuesta'));
+  $('form-encuesta').addEventListener('submit', (ev) => {
+    ev.preventDefault();
+    estado.encuesta = recortar(CAMPOS_ENCUESTA, leerCampos(CAMPOS_ENCUESTA));
+    const errores = validarEncuesta(estado.encuesta);
+    pintarErrores($('form-encuesta'), errores);
+    if (hayErrores(errores)) {
+      guardar();
+      avisarErrores($('form-encuesta'), errores, $('msg-encuesta'));
+      return;
+    }
+    ir('quiz');
+  });
+  $('encuesta-atras').addEventListener('click', () => {
+    estado.encuesta = leerCampos(CAMPOS_ENCUESTA);
+    guardar();
+    ir('datos');
+  });
+
+  // Paso 3: cuestionario
   $('btn-siguiente').addEventListener('click', siguiente);
   $('btn-atras').addEventListener('click', atras);
   $('btn-csv').addEventListener('click', descargarCSV);
@@ -315,12 +681,12 @@
     b.addEventListener('click', () => {
       aplicarTema(b.dataset.themeBtn);
       // El tema cambia fuentes y formas: recalcular cuántas preguntas caben
-      if (!pantallas.quiz.classList.contains('hidden')) render('adelante', estado.indice);
+      if (enQuiz()) render('adelante', estado.indice);
     });
   });
 
   document.addEventListener('keydown', (e) => {
-    if (pantallas.quiz.classList.contains('hidden')) return;
+    if (!enQuiz()) return;
     if (e.ctrlKey || e.metaKey || e.altKey) return;
     if (e.key === 'ArrowRight') siguiente();
     else if (e.key === 'ArrowLeft') atras();
@@ -331,7 +697,7 @@
   window.addEventListener('resize', () => {
     clearTimeout(temporizador);
     temporizador = setTimeout(() => {
-      if (!pantallas.quiz.classList.contains('hidden')) render('adelante', estado.indice);
+      if (enQuiz()) render('adelante', estado.indice);
     }, 150);
   });
 

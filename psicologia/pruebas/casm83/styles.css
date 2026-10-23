@@ -435,8 +435,199 @@ body.modo-quiz main {
   color: var(--texto-suave);
 }
 
+/* ===== Formularios: datos personales y encuesta vocacional ===== */
+.paso {
+  margin: 0 0 4px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--acento);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 18px;
+  margin-top: 16px;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.campo.ancho { grid-column: 1 / -1; }
+
+.campo label,
+.campo .etiqueta {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--texto-suave);
+}
+
+.campo input,
+.campo select {
+  font: inherit;
+  font-size: 1rem; /* 16px evita el zoom automático en iPhone */
+  width: 100%;
+  padding: 11px 12px;
+  color: var(--texto);
+  background: var(--card);
+  border: 2px solid var(--borde);
+  border-radius: var(--radio);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.campo input:focus,
+.campo select:focus {
+  outline: none;
+  border-color: var(--primario);
+  box-shadow: 0 0 0 3px var(--acento-suave);
+}
+
+.campo input.error,
+.campo select.error { border-color: var(--error); }
+
+.err {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--error);
+}
+
+.err:empty { display: none; }
+
+.fecha-fila {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1.3fr;
+  gap: 10px;
+}
+
+.grupo {
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 8px 16px 16px;
+  margin: 16px 0 0;
+  min-width: 0;
+}
+
+.grupo legend {
+  padding: 0 8px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--primario);
+}
+
+.trio {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+form .nav { margin-top: 20px; }
+
+/* ===== Tablas de resultados ===== */
+.tabla-wrap {
+  overflow-x: auto;
+  margin: 8px 0 4px;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+}
+
+.tabla-angosta { max-width: 420px; }
+
+.tabla {
+  width: 100%;
+  min-width: 780px;
+  border-collapse: collapse;
+  text-align: center;
+  font-size: 0.8rem;
+}
+
+.tabla-angosta .tabla { min-width: 0; }
+
+.tabla th,
+.tabla td {
+  border: 1px solid var(--borde);
+  padding: 4px 2px;
+}
+
+.tabla thead th {
+  background: var(--primario);
+  color: var(--primario-texto);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  padding: 7px 4px;
+}
+
+.tabla tbody th,
+.tabla tfoot th {
+  background: var(--acento-suave);
+  color: var(--primario);
+  font-size: 0.78rem;
+  padding: 4px 8px;
+  white-space: nowrap;
+  position: sticky;
+  left: 0;
+}
+
+.tabla .celda { min-width: 52px; }
+
+.tabla .n {
+  display: block;
+  font-size: 0.65rem;
+  line-height: 1.1;
+  color: var(--texto-suave);
+}
+
+.tabla .m {
+  display: inline-block;
+  min-width: 1.5em;
+  padding: 0 3px;
+  border-radius: 3px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--texto-suave);
+  opacity: 0.35;
+}
+
+.tabla .m.on { opacity: 1; }
+.tabla .m.a.on { background: var(--primario); color: var(--primario-texto); }
+.tabla .m.b.on { background: var(--acento-suave); color: var(--primario); box-shadow: inset 0 0 0 1px var(--acento); }
+
+.tabla td.tot,
+.tabla tfoot td {
+  background: var(--acento-suave);
+  color: var(--primario);
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.tabla-angosta .tabla td { padding: 6px 4px; font-size: 0.9rem; }
+
+/* ===== Ficha con los datos en la pantalla final ===== */
+.ficha {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 6px 16px;
+  margin: 16px 0;
+  padding: 14px 16px;
+  background: var(--acento-suave);
+  border-radius: var(--radio);
+  font-size: 0.9rem;
+}
+
+.ficha dt { font-weight: 700; color: var(--texto-suave); }
+.ficha dd { margin: 0; overflow-wrap: anywhere; }
+
 /* ===== Pantallas angostas: una opción debajo de la otra ===== */
 @media (max-width: 640px) {
+  .form-grid,
+  .trio,
+  .ficha { grid-template-columns: 1fr; }
+  .ficha dt { margin-top: 6px; }
   .par { grid-template-columns: 1fr; }
   .card { padding: 20px 16px; }
   #screen-quiz { padding: 12px; }
@@ -459,4 +650,3 @@ body.modo-quiz main {
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }
-
