@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CASM83</title>
+    <style>
+        :root {
+            --primary-color: #107c41; /* Verde Excel */
+            --primary-hover: #0b592e;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --text-muted: #666666;
+            --yape-color: #00d2c6;
+            --whatsapp-color: #25d366;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            align-items: center;
+        }
+
+        main {
+            flex: 1;
+            width: 100%;
+            max-width: 600px;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 2rem;
+            margin-bottom: 12px;
+        }
+
+        .description {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        /* Contenedor interactivo del SVG de Excel de alta fidelidad */
+        .excel-icon-container {
+            width: 110px;
+            height: 110px;
+            margin: 0 auto 25px auto;
+            display: block;
+            transition: transform 0.3s ease, filter 0.3s ease;
+            cursor: pointer;
+        }
+
+        .excel-icon-container:hover {
+            transform: translateY(-5px);
+            filter: drop-shadow(0 8px 12px rgba(16, 124, 65, 0.25));
+        }
+
+        .btn-download {
+            display: inline-flex;
+            align-items: center;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.3s;
+            margin-bottom: 25px;
+        }
+
+        .btn-download:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .notice {
+            font-size: 0.9rem;
+            color: #d97706;
+            background-color: #fef3c7;
+            padding: 10px;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+
+        .donation-section {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .donation-icon {
+            width: 50px;
+            height: 50px;
+            fill: #e11d48;
+            margin-bottom: 15px;
+        }
+
+        .donation-text {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        /* Estructura del botón de Yape */
+        .yape-container {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #742274, #00d2c6);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 24px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            letter-spacing: 0.5px;
+            overflow: hidden;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(116, 34, 116, 0.2);
+            transition: transform 0.2s;
+        }
+
+        .yape-container:active {
+            transform: scale(0.98);
+        }
+
+        /* El número oculto por defecto con blur */
+        .yape-number {
+            filter: blur(5px);
+            transition: filter 0.4s ease, opacity 0.4s ease;
+            user-select: none; /* Evita que lo seleccionen sin querer antes del hover */
+        }
+
+        /* Texto flotante de ayuda que desaparece al hacer hover */
+        .yape-container::after {
+            content: "👉 Ver número";
+            position: absolute;
+            background: rgba(116, 34, 116, 0.9);
+            color: white;
+            font-size: 0.85rem;
+            padding: 4px 12px;
+            border-radius: 12px;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            pointer-events: none;
+        }
+
+        /* Efecto Hover para revelar el número */
+        .yape-container:hover .yape-number {
+            filter: blur(0);
+            user-select: auto;
+        }
+
+        .yape-container:hover::after {
+            opacity: 0;
+            transform: scale(0.8);
+        }
+
+        footer {
+            width: 100%;
+            background-color: #1e293b;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            margin-top: auto;
+        }
+
+        .footer-content {
+            max-width: 600px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn-whatsapp {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background-color: var(--whatsapp-color);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: opacity 0.3s;
+        }
+
+        .btn-whatsapp:hover {
+            opacity: 0.9;
+        }
+
+        .copyright {
+            font-size: 0.85rem;
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+
+    <main>
+        <!-- Sección Principal -->
+        <div class="card">
+            <h1>PLANTILLA CASM 83</h1>
+            <p class="description">Calificación del Casm 83, Inventario de Intereses Profesionales y Ocupacionales</p>
+            
+            <!-- SVG de Excel de Alta Fidelidad Estilo Office -->
+            <svg class="excel-icon-container" viewBox="0 0 24 24" xmlns="http://w3.org">
+                <defs>
+                    <linearGradient id="excelBack" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#107c41" />
+                        <stop offset="100%" stop-color="#0a4e29" />
+                    </linearGradient>
+                    <linearGradient id="excelFront" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#33c481" />
+                        <stop offset="50%" stop-color="#107c41" />
+                        <stop offset="100%" stop-color="#0b592e" />
+                    </linearGradient>
+                </defs>
+
+                <!-- Panel Trasero -->
+                <g filter="drop-shadow(0px 2px 3px rgba(0,0,0,0.15))">
+                    <path fill="url(#excelBack)" d="M14.5 2H4a1.5 1.5 0 0 0-1.5 1.5v17A1.5 1.5 0 0 0 4 22h16a1.5 1.5 0 0 0 1.5-1.5V9L14.5 2z"/>
+                    <path fill="#ffffff" opacity="0.15" d="M14.5 2V9H21L14.5 2z"/>
+                </g>
+
+                <!-- Líneas internas de la rejilla -->
+                <g stroke="#ffffff" stroke-width="0.6" opacity="0.25" stroke-linecap="round">
+                    <line x1="6" y1="12" x2="18" y2="12" />
+                    <line x1="6" y1="15" x2="18" y2="15" />
+                    <line x1="6" y1="18" x2="18" y2="18" />
+                    <line x1="10" y1="10" x2="10" y2="20" />
+                    <line x1="14" y1="10" x2="14" y2="20" />
+                </g>
+
+                <!-- Panel Frontal Elevado (La insignia 'X') -->
+                <g filter="drop-shadow(2px 3px 4px rgba(0,0,0,0.25))">
+                    <path fill="url(#excelFront)" d="M13 5.5H2.5A1.5 1.5 0 0 0 1 7v10a1.5 1.5 0 0 0 1.5 1.5H13a1 1 0 0 0 1-1V6.5a1 1 0 0 0-1-1z"/>
+                    <path fill="#ffffff" d="M9.8 8.5h1.75L8.7 12l2.95 3.5H9.8L7.95 12.9l-1.9 2.6H4.2l2.9-3.5-2.75-3.5h1.7L7.9 11.1z"/>
+                </g>
+            </svg>
+
+            <!-- Enlace de descarga -->
+            <a href="#" class="btn-download" download>Descargar Plantilla Excel</a>
+            
+            <p class="notice">⚙️ Próximamente se actualizará para mejorar la calificación.</p>
+        </div>
+
+        <!-- Sección de Donación -->
+        <div class="donation-section">
+            <svg class="donation-icon" viewBox="0 0 24 24" xmlns="http://w3.org">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.5 3 21.9 5.42 21.9 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+            <p class="donation-text">SI TE AYUDÓ MI PLANTILLA, PODRIAS COLOBORAR PARA MANTER ACTUALIZADO Y SEGUIR MEJORANDO</p>
+            
+            <!-- Contenedor interactivo Yape con número oculto -->
+            <div class="yape-container">
+                <span class="yape-number">YAPE: 982067675</span>
+            </div>
+        </div>
+    </main>
+
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <a href="https://wa.me" class="btn-whatsapp" target="_blank">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" xmlns="http://w3.org">
+                    <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.69-4.98c-.202-.101-1.2-.593-1.385-.658-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.2-.491 1.367-.967.172-.476.172-.885.122-.967-.051-.082-.18-.13-.383-.233z"/>
+                </svg>
+                Contactar por WhatsApp
+            </a>
+            <p class="copyright">&copy; 2026 CASM83. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+</body>
+</html>
