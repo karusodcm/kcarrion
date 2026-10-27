@@ -3,140 +3,238 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Inicio · kcarrion</title>
-  <meta name="description" content="Pruebas y recursos de orientación vocacional. Descubre tus intereses con el Inventario CASM83-R91.">
-  <link rel="stylesheet" href="assets/site.css">
-  <script src="assets/site.js" defer></script>
+  <title>kcarrion · Evaluación integral de la persona</title>
+  <meta name="description" content="Evaluación integral de la persona desde la medicina, la enfermería, la psicología y el trabajo social. Recursos, capacitaciones, pruebas, herramientas y un panel con agenda, notas e historial.">
+  <link rel="stylesheet" href="assets/css/theme.css">
+  <link rel="stylesheet" href="assets/css/app.css">
 </head>
-<body class="sx-page" data-page="inicio">
+<body data-root="./">
 
-  <main id="contenido">
+  <div id="site-navbar"></div>
 
-    <!-- Hero -->
-    <section class="sx-hero">
-      <div class="sx-wrap sx-hero__grid">
+  <main>
+    <!-- HERO -->
+    <section class="hero" id="inicio">
+      <div class="container hero__grid">
         <div>
-          <p class="sx-eyebrow">Orientación vocacional</p>
-          <h1 class="sx-h1">Descubre tus intereses vocacionales con una prueba clara y sencilla</h1>
-          <p class="sx-lead">
-            Responde el Inventario de Intereses Vocacionales y Ocupacionales CASM83-R91 y obtén tu perfil
-            por áreas, con categoría y percentil, al terminar.
-          </p>
-          <div class="sx-actions">
-            <a class="sx-btn sx-btn--primary" href="psicologia/pruebas/casm83/casm83.html">Hacer la prueba</a>
-            <a class="sx-btn sx-btn--ghost" href="psicologia/materiales/index.html">Ver recursos</a>
+          <span class="eyebrow">Evaluación integral de la persona</span>
+          <h1>Una persona, varias miradas, <span>un solo lugar.</span></h1>
+          <p class="lead">Medicina, enfermería, psicología y trabajo social reunidas para comprender a cada persona en su totalidad. Encuentra recursos, capacitaciones, pruebas y herramientas, y organiza tu trabajo con una agenda y un historial propios.</p>
+          <div class="hero__actions">
+            <a class="btn btn--primary" href="login.html?modo=registro">Crear mi cuenta</a>
+            <a class="btn btn--outline" href="#areas">Conocer las áreas</a>
           </div>
-          <ul class="sx-meta">
-            <li>143 preguntas</li>
-            <li>Unos 40 minutos</li>
-            <li>Resultados al instante</li>
-          </ul>
+          <div class="badges">
+            <span>Agenda y notas personales</span>
+            <span>Historial por paciente</span>
+            <span>Desde cualquier dispositivo</span>
+          </div>
         </div>
 
-        <!-- Vista de ejemplo del perfil (decorativa) -->
-        <div class="sx-card sx-mock" aria-hidden="true">
-          <p class="sx-mock__tag">Ejemplo ilustrativo del perfil</p>
-          <svg viewBox="0 0 400 230" role="presentation">
-            <line class="g" x1="140" y1="6" x2="140" y2="206"/>
-            <line class="g" x1="230" y1="6" x2="230" y2="206" stroke-dasharray="3 4"/>
-            <line class="g" x1="320" y1="6" x2="320" y2="206" stroke-dasharray="3 4"/>
-
-            <text class="t" x="132" y="26" text-anchor="end">Ciencias Sociales</text>
-            <rect x="140" y="12" width="230" height="20" rx="4" fill="#0a5f67"/>
-            <text class="v" x="376" y="26">18</text>
-
-            <text class="t" x="132" y="66" text-anchor="end">Ciencias Naturales</text>
-            <rect x="140" y="52" width="170" height="20" rx="4" fill="#17b3ab"/>
-            <text class="v" x="316" y="66">14</text>
-
-            <text class="t" x="132" y="106" text-anchor="end">Artes</text>
-            <rect x="140" y="92" width="130" height="20" rx="4" fill="#5cc9c3"/>
-            <text class="v" x="276" y="106">11</text>
-
-            <text class="t" x="132" y="146" text-anchor="end">Finanzas</text>
-            <rect x="140" y="132" width="80" height="20" rx="4" fill="#9ddcd8"/>
-            <text class="v" x="226" y="146">7</text>
-
-            <text class="t" x="132" y="186" text-anchor="end">Jurisprudencia</text>
-            <rect x="140" y="172" width="40" height="20" rx="4" fill="#cdeceb"/>
-            <text class="v" x="186" y="186">4</text>
-          </svg>
+        <div class="mock" aria-hidden="true">
+          <div class="mock__bar"><i></i><i></i><i></i></div>
+          <div class="mock__row"><span><b>09:00 · Valoración inicial</b><br>Medicina</span><span class="mock__tag">Hoy</span></div>
+          <div class="mock__row"><span><b>10:30 · Seguimiento</b><br>Psicología</span><span class="mock__tag">Hoy</span></div>
+          <div class="mock__row"><span><b>12:00 · Visita domiciliaria</b><br>Trabajo social</span><span class="mock__tag">Mañana</span></div>
+          <div class="mock__chart"><i style="height:45%"></i><i style="height:80%"></i><i style="height:60%"></i><i style="height:95%"></i><i style="height:35%"></i><i style="height:70%"></i><i style="height:55%"></i></div>
         </div>
       </div>
     </section>
 
-    <!-- Qué ofrece -->
-    <section class="sx-section">
-      <div class="sx-wrap">
-        <div class="sx-center">
-          <p class="sx-eyebrow">Qué incluye</p>
-          <h2 class="sx-h2">Todo lo que necesitas para conocer tu perfil</h2>
-          <p class="sx-lead">Una prueba completa, resultados fáciles de leer y material para entenderlos.</p>
+    <!-- ÁREAS -->
+    <section class="section" id="areas">
+      <div class="container">
+        <div class="section__head section__head--center">
+          <span class="eyebrow">Áreas</span>
+          <h2>Cada disciplina aporta una parte de la historia.</h2>
+          <p class="lead">La evaluación integral cruza lo físico, lo emocional y lo social para acompañar mejor.</p>
         </div>
-
-        <div class="sx-grid-3">
-          <article class="sx-card">
-            <div class="sx-icon">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-            </div>
-            <h3 class="sx-h3">Prueba completa</h3>
-            <p>143 pares de preguntas con 11 escalas de interés, más escalas de veracidad y consistencia para validar tus respuestas.</p>
+        <div class="grid grid--6">
+          <article class="card area-card">
+            <div class="icon">🩺</div>
+            <h3>Medicina</h3>
+            <p>Valoración clínica, antecedentes y seguimiento de la salud física.</p>
+            <ul><li>Anamnesis y examen físico</li><li>Factores de riesgo</li><li>Plan de seguimiento</li></ul>
           </article>
-
-          <article class="sx-card">
-            <div class="sx-icon">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-            </div>
-            <h3 class="sx-h3">Perfil con percentiles</h3>
-            <p>Puntajes por área convertidos a categoría y percentil, con una gráfica de tu perfil de intereses.</p>
+          <article class="card area-card">
+            <div class="icon">💉</div>
+            <h3>Enfermería</h3>
+            <p>Cuidado continuo, control de signos y educación para la salud.</p>
+            <ul><li>Signos vitales y valoración</li><li>Cuidados y registros</li><li>Educación al paciente y familia</li></ul>
           </article>
-
-          <article class="sx-card">
-            <div class="sx-icon">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            </div>
-            <h3 class="sx-h3">Tus datos, en tu dispositivo</h3>
-            <p>Tus respuestas se guardan solo en tu navegador. Puedes pausar y continuar cuando quieras.</p>
+          <article class="card area-card">
+            <div class="icon">🧠</div>
+            <h3>Psicología</h3>
+            <p>Evaluación emocional, conductual y vocacional con instrumentos validados.</p>
+            <ul><li>Entrevista y observación</li><li>Pruebas psicológicas</li><li>Acompañamiento terapéutico</li></ul>
+          </article>
+          <article class="card area-card">
+            <div class="icon">🤝</div>
+            <h3>Trabajo social</h3>
+            <p>Contexto familiar, redes de apoyo y condiciones de vida de la persona.</p>
+            <ul><li>Valoración sociofamiliar</li><li>Redes y recursos comunitarios</li><li>Gestión y derivación</li></ul>
+          </article>
+          <article class="card area-card">
+            <div class="icon">🥗</div>
+            <h3>Nutrición</h3>
+            <p>Hábitos alimentarios y estado nutricional como parte del bienestar.</p>
+            <ul><li>Evaluación antropométrica</li><li>Hábitos y metas</li><li>Seguimiento</li></ul>
+          </article>
+          <article class="card area-card">
+            <div class="icon">🏃</div>
+            <h3>Rehabilitación y otras</h3>
+            <p>Terapia física, ocupacional y otras disciplinas que completan el panorama.</p>
+            <ul><li>Valoración funcional</li><li>Objetivos de recuperación</li><li>Trabajo en equipo</li></ul>
           </article>
         </div>
       </div>
     </section>
 
-    <!-- Cómo funciona -->
-    <section class="sx-section sx-section--soft">
-      <div class="sx-wrap">
-        <div class="sx-center">
-          <p class="sx-eyebrow">Cómo funciona</p>
-          <h2 class="sx-h2">Tres pasos para obtener tu perfil</h2>
+    <!-- CÓMO FUNCIONA -->
+    <section class="section section--soft">
+      <div class="container">
+        <div class="section__head section__head--center">
+          <span class="eyebrow">Tu espacio personal</span>
+          <h2>Ingresa y organiza tu trabajo.</h2>
+          <p class="lead">Al conectarte accedes a una agenda personalizada, notas y el historial de cada paciente o cliente.</p>
         </div>
-
-        <ol class="sx-steps">
-          <li>
-            <h3 class="sx-h3">Completa tus datos</h3>
-            <p>Tus datos personales y una breve encuesta con los oficios y carreras que te gustaría seguir.</p>
-          </li>
-          <li>
-            <h3 class="sx-h3">Responde las preguntas</h3>
-            <p>En cada par elige la alternativa que más te interese: la a, la b o ambas.</p>
-          </li>
-          <li>
-            <h3 class="sx-h3">Revisa tu perfil</h3>
-            <p>Obtén la validez de la prueba, tus puntajes por área, tu percentil y la gráfica de tu perfil.</p>
-          </li>
-        </ol>
+        <div class="steps">
+          <div class="step"><h3>Crea tu cuenta</h3><p>Regístrate con tu correo. El acceso se valida de forma segura con Supabase.</p></div>
+          <div class="step"><h3>Organiza tu agenda</h3><p>Programa citas, marca las atendidas y ten a la vista el día y la semana.</p></div>
+          <div class="step"><h3>Registra el historial</h3><p>Guarda la evolución de cada paciente o cliente y tus notas de trabajo.</p></div>
+        </div>
+        <p class="small" style="text-align:center;margin-top:1.5rem">Tu agenda, notas e historial se guardan en este navegador. Descarga un respaldo desde tu panel cuando quieras.</p>
       </div>
     </section>
 
-    <!-- Llamada a la acción -->
-    <section class="sx-cta">
-      <div class="sx-wrap">
-        <h2 class="sx-h2">¿Listo para empezar?</h2>
-        <p>Reserva unos 40 minutos y responde con calma, según lo que realmente te interesa.</p>
-        <a class="sx-btn sx-btn--light" href="psicologia/pruebas/casm83/casm83.html">Hacer la prueba</a>
+    <!-- RECURSOS -->
+    <section class="section" id="recursos">
+      <div class="container">
+        <div class="section__head">
+          <span class="eyebrow">Recursos</span>
+          <h2>Material para consultar y compartir.</h2>
+          <p class="lead">Guías, formatos y lecturas de apoyo para profesionales, estudiantes y familias.</p>
+        </div>
+        <div class="grid grid--3">
+          <a class="card" href="#"><div class="icon">📘</div><h3>Guías y protocolos</h3><p>Pautas de valoración y buenas prácticas para cada disciplina.</p></a>
+          <a class="card" href="#"><div class="icon">🗂️</div><h3>Formatos descargables</h3><p>Consentimientos, fichas de registro, informes y constancias.</p></a>
+          <a class="card" href="#"><div class="icon">📚</div><h3>Lecturas y material educativo</h3><p>Artículos, infografías y recursos para pacientes y familias.</p></a>
+        </div>
       </div>
     </section>
 
+    <!-- CAPACITACIONES Y TALLERES -->
+    <section class="section section--soft" id="capacitaciones">
+      <div class="container">
+        <div class="section__head">
+          <span class="eyebrow">Capacitaciones y talleres</span>
+          <h2>Aprende y actualízate con otros profesionales.</h2>
+        </div>
+        <div class="grid grid--4">
+          <article class="card"><span class="event-date">Próximamente · Virtual</span><h3 style="margin-top:.8rem">Entrevista y valoración integral</h3><p>Cómo integrar la mirada médica, psicológica y social en una sola evaluación.</p></article>
+          <article class="card"><span class="event-date">Próximamente · Virtual</span><h3 style="margin-top:.8rem">Registros clínicos claros</h3><p>Notas de evolución ordenadas y útiles para todo el equipo.</p></article>
+          <article class="card"><span class="event-date">Próximamente · Presencial</span><h3 style="margin-top:.8rem">Redes de apoyo y trabajo social</h3><p>Herramientas para valorar el entorno familiar y comunitario.</p></article>
+          <article class="card"><span class="event-date">Próximamente · Virtual</span><h3 style="margin-top:.8rem">Bienestar y manejo del estrés</h3><p>Taller práctico para cuidar la salud emocional de equipos y pacientes.</p></article>
+        </div>
+        <p class="small" style="margin-top:1.25rem">Las fechas se publicarán aquí. Crea tu cuenta para estar al tanto.</p>
+      </div>
+    </section>
+
+    <!-- PRUEBAS -->
+    <section class="section" id="pruebas">
+      <div class="container">
+        <div class="section__head">
+          <span class="eyebrow">Pruebas</span>
+          <h2>Instrumentos de evaluación en pantalla.</h2>
+          <p class="lead">Aplica pruebas en línea y obtén resultados organizados.</p>
+        </div>
+        <div class="grid grid--3">
+          <article class="card test-card">
+            <div class="icon">🧭</div>
+            <h3>Inventario de Intereses Vocacionales y Ocupacionales CASM83-R91</h3>
+            <p>143 ítems con opciones a y b. Incluye datos personales, encuesta vocacional, veracidad, consistencia y perfil por áreas.</p>
+            <div class="meta"><span class="pill">Psicología</span><span class="pill">Vocacional</span></div>
+            <a class="btn btn--primary btn--sm" href="login.html?next=psicologia/pruebas/casm83/casm83.html">Hacer la prueba</a>
+          </article>
+          <article class="card test-card">
+            <div class="icon">💬</div>
+            <h3>Tamizaje emocional</h3>
+            <p>Escalas breves para detectar señales de ansiedad y depresión.</p>
+            <div class="meta"><span class="pill">Próximamente</span></div>
+          </article>
+          <article class="card test-card">
+            <div class="icon">🏠</div>
+            <h3>Valoración sociofamiliar</h3>
+            <p>Cuestionario para conocer el entorno, los apoyos y los riesgos sociales.</p>
+            <div class="meta"><span class="pill">Próximamente</span></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- HERRAMIENTAS -->
+    <section class="section section--soft" id="herramientas">
+      <div class="container">
+        <div class="section__head">
+          <span class="eyebrow">Herramientas</span>
+          <h2>Utilidades para el día a día.</h2>
+        </div>
+        <div class="tool-layout">
+          <div class="grid grid--2">
+            <a class="card" href="panel.html"><div class="icon">📅</div><h3>Agenda de citas</h3><p>Programa, reprograma y marca como atendidas.</p></a>
+            <a class="card" href="panel.html"><div class="icon">📝</div><h3>Notas</h3><p>Apuntes personales y pendientes, ligados a un paciente si quieres.</p></a>
+            <a class="card" href="panel.html"><div class="icon">📋</div><h3>Historial del paciente</h3><p>Línea de tiempo con citas y evolución por persona.</p></a>
+            <a class="card" href="panel.html"><div class="icon">💾</div><h3>Respaldo</h3><p>Descarga o restaura tus datos en un archivo.</p></a>
+          </div>
+
+          <div class="box">
+            <h3>Calculadora de IMC</h3>
+            <p class="small">Referencia rápida para adultos.</p>
+            <form id="imc-form" novalidate>
+              <div class="form-row">
+                <div class="field"><label for="peso">Peso (kg)</label><input class="input" id="peso" name="peso" type="number" step="0.1" min="1" inputmode="decimal" placeholder="68"></div>
+                <div class="field"><label for="talla">Talla (cm)</label><input class="input" id="talla" name="talla" type="number" step="1" min="100" max="250" inputmode="numeric" placeholder="165"></div>
+              </div>
+              <button class="btn btn--primary btn--block" type="submit">Calcular</button>
+            </form>
+            <div id="imc-out" class="imc-result" role="status" aria-live="polite"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section">
+      <div class="container">
+        <div class="section__head section__head--center"><h2>Preguntas frecuentes</h2></div>
+        <div class="faq">
+          <details><summary>¿Dónde se guardan mis datos?</summary><p>Tu cuenta se valida con Supabase. La agenda, las notas y el historial se guardan en el almacenamiento local de tu navegador, por lo que solo están disponibles en ese dispositivo. Desde tu panel puedes descargar un respaldo.</p></details>
+          <details><summary>¿Puedo ver mi información desde otro dispositivo?</summary><p>Por ahora no: lo guardado en un navegador no pasa a otro. Usa la función de respaldo para llevar tus datos de un equipo a otro.</p></details>
+          <details><summary>¿Qué pasa si limpio los datos del navegador?</summary><p>Se borrarían también tu agenda e historial. Por eso recomendamos descargar respaldos con frecuencia.</p></details>
+          <details><summary>¿Quién puede usar el sitio?</summary><p>Cualquier persona puede explorar la información. Para usar la agenda, las notas y el historial hay que crear una cuenta e ingresar.</p></details>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACTO -->
+    <section class="section section--soft" id="contacto">
+      <div class="container">
+        <div class="cta-band">
+          <h2>¿Hablamos?</h2>
+          <p>Escríbenos para resolver dudas, proponer un taller o conocer nuevas pruebas.</p>
+          <div class="hero__actions" style="justify-content:center;margin-bottom:0">
+            <a class="btn btn--light" href="mailto:contacto@kcarrion.com">Escribir por correo</a>
+            <a class="btn btn--outline" style="color:#fff;border-color:#fff" href="login.html?modo=registro">Crear mi cuenta</a>
+          </div>
+        </div>
+      </div>
+    </section>
   </main>
 
+  <div id="site-footer"></div>
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/layout.js"></script>
+  <script src="assets/js/home.js"></script>
 </body>
 </html>

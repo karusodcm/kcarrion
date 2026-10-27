@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ingresar · kcarrion</title>
+  <link rel="stylesheet" href="assets/css/theme.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body data-root="./">
+
+  <div id="site-navbar"></div>
+
+  <main class="auth">
+    <div class="auth__card">
+      <span class="eyebrow" id="eyebrow">Acceso</span>
+      <h1 id="titulo">Ingresa a tu espacio</h1>
+      <p class="lead" style="font-size:1rem" id="subtitulo">Accede a tu agenda, notas e historial de pacientes.</p>
+
+      <div class="auth-tabs" role="tablist">
+        <button type="button" role="tab" id="tab-in" aria-selected="true">Ingresar</button>
+        <button type="button" role="tab" id="tab-up" aria-selected="false">Crear cuenta</button>
+      </div>
+
+      <div id="demo-note" class="notice notice--warn" style="display:none;margin-bottom:1rem">
+        <strong>Modo demostración.</strong> Supabase aún no está configurado (archivo <code>assets/js/config.js</code>), así que cualquier correo y contraseña sirven y la sesión solo vive en este navegador.
+      </div>
+      <div id="msg" class="form-msg" role="alert"></div>
+
+      <form id="auth-form" novalidate>
+        <div class="field">
+          <label for="email">Correo electrónico</label>
+          <input class="input" id="email" name="email" type="email" autocomplete="email" required>
+        </div>
+        <div class="field">
+          <label for="clave">Contraseña</label>
+          <input class="input" id="clave" name="clave" type="password" autocomplete="current-password" minlength="6" required>
+        </div>
+        <div class="field" id="field-repetir" style="display:none">
+          <label for="repetir">Repite la contraseña</label>
+          <input class="input" id="repetir" name="repetir" type="password" autocomplete="new-password">
+        </div>
+        <button class="btn btn--primary btn--block" type="submit" id="enviar">Ingresar</button>
+      </form>
+
+      <p class="auth__alt"><a href="index.html">← Volver al inicio</a></p>
+    </div>
+  </main>
+
+  <div id="site-footer"></div>
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/layout.js"></script>
+  <script src="assets/js/login.js"></script>
+</body>
+</html>
