@@ -6,6 +6,7 @@
   <title>Mi panel · kcarrion</title>
   <link rel="stylesheet" href="assets/css/theme.css">
   <link rel="stylesheet" href="assets/css/app.css">
+  <link rel="stylesheet" href="assets/css/agenda.css">
 </head>
 <body data-root="./">
 
@@ -30,7 +31,7 @@
       <div id="save-error" class="notice notice--warn" style="display:none;margin-bottom:1rem">No se pudo guardar en este navegador (almacenamiento lleno o bloqueado). Descarga un respaldo.</div>
 
       <div class="stats">
-        <div class="stat"><b id="st-hoy">0</b><span>Citas de hoy</span></div>
+        <div class="stat"><b id="st-hoy">0</b><span>Agenda de hoy</span></div>
         <div class="stat"><b id="st-semana">0</b><span>Próximos 7 días</span></div>
         <div class="stat"><b id="st-pac">0</b><span>Pacientes / clientes</span></div>
         <div class="stat"><b id="st-notas">0</b><span>Notas</span></div>
@@ -47,44 +48,82 @@
       <!-- RESUMEN -->
       <section class="tab-panel" id="tab-resumen">
         <div class="two-col" style="grid-template-columns:1fr 1fr">
-          <div class="box"><h2>Citas de hoy</h2><div class="list" id="lista-hoy"></div></div>
-          <div class="box"><h2>Por cerrar</h2><p class="small">Citas pasadas que aún no marcaste como atendidas o canceladas.</p><div class="list" id="lista-cerrar"></div></div>
+          <div class="box"><h2>Agenda de hoy</h2><div class="list" id="lista-hoy"></div></div>
+          <div class="box"><h2>Por cerrar</h2><p class="small">Actividades pasadas que aún no marcaste como realizadas o canceladas.</p><div class="list" id="lista-cerrar"></div></div>
         </div>
       </section>
 
       <!-- AGENDA -->
       <section class="tab-panel" id="tab-agenda" hidden>
-        <div class="two-col">
-          <div class="box">
-            <h2>Nueva cita</h2>
-            <form id="cita-form" novalidate>
-              <div class="field"><label for="c-paciente">Paciente / cliente</label><select class="input" id="c-paciente" name="pacienteId"></select></div>
-              <div class="form-row">
-                <div class="field"><label for="c-fecha">Fecha</label><input class="input" id="c-fecha" name="fecha" type="date" required></div>
-                <div class="field"><label for="c-hora">Hora</label><input class="input" id="c-hora" name="hora" type="time" required></div>
-              </div>
-              <div class="form-row">
-                <div class="field"><label for="c-area">Área</label><select class="input" id="c-area" name="area"></select></div>
-                <div class="field"><label for="c-dur">Duración (min)</label><input class="input" id="c-dur" name="duracion" type="number" min="5" max="480" step="5" value="45"></div>
-              </div>
-              <div class="field"><label for="c-motivo">Motivo</label><input class="input" id="c-motivo" name="motivo" maxlength="120" placeholder="Valoración inicial, seguimiento…"></div>
-              <div id="c-msg" class="form-msg" role="alert"></div>
-              <button class="btn btn--primary btn--block" type="submit">Agendar cita</button>
-            </form>
+        <div class="toolbar agenda-bar">
+          <div class="seg" role="group" aria-label="Vista de la agenda">
+            <button type="button" class="seg__btn" data-vista="calendario" aria-pressed="true">Calendario</button>
+            <button type="button" class="seg__btn" data-vista="lista" aria-pressed="false">Lista</button>
           </div>
-          <div class="box">
-            <div class="toolbar">
-              <h2 style="margin:0">Agenda</h2>
-              <select class="input" id="a-filtro" aria-label="Filtrar citas">
-                <option value="proximas">Próximas</option>
-                <option value="cerrar">Por cerrar</option>
-                <option value="cerradas">Atendidas y canceladas</option>
-                <option value="todas">Todas</option>
-              </select>
-            </div>
-            <div id="lista-agenda"></div>
-          </div>
+          <button class="btn btn--primary btn--sm" type="button" id="btn-nuevo">+ Nuevo</button>
         </div>
+
+        <div id="vista-calendario" class="agenda-layout">
+          <div class="box cal">
+            <div class="cal__head">
+              <button class="btn btn--ghost btn--sm cal__nav" type="button" id="cal-prev" aria-label="Mes anterior">‹</button>
+              <h2 id="cal-titulo" aria-live="polite"></h2>
+              <button class="btn btn--ghost btn--sm cal__nav" type="button" id="cal-next" aria-label="Mes siguiente">›</button>
+              <button class="btn btn--outline btn--xs" type="button" id="cal-hoy">Hoy</button>
+            </div>
+            <div class="cal__week" aria-hidden="true"><span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+            <div class="cal__grid" id="cal-grid"></div>
+            <div class="legend" id="leyenda"></div>
+          </div>
+          <div class="box" id="dia-panel"></div>
+        </div>
+
+        <div id="vista-lista" class="box" hidden>
+          <div class="toolbar">
+            <h2 style="margin:0">Lista</h2>
+            <select class="input" id="a-filtro" aria-label="Filtrar agenda">
+              <option value="proximas">Próximas</option>
+              <option value="cerrar">Por cerrar</option>
+              <option value="cerradas">Realizadas y canceladas</option>
+              <option value="todas">Todas</option>
+            </select>
+          </div>
+          <div id="lista-agenda"></div>
+        </div>
+
+        <button class="fab" type="button" id="fab-nuevo" aria-label="Nueva entrada en la agenda">+</button>
+
+        <dialog class="sheet" id="ev-dialog" aria-labelledby="ev-titulo">
+          <form id="ev-form" novalidate>
+            <div class="sheet__head">
+              <h2 id="ev-titulo">Nueva entrada</h2>
+              <button type="button" class="btn btn--ghost btn--sm" id="ev-cerrar" aria-label="Cerrar">✕</button>
+            </div>
+            <div class="sheet__body">
+              <input type="hidden" name="eid">
+              <fieldset class="tipos" id="ev-tipos"><legend class="sr">Tipo de entrada</legend></fieldset>
+
+              <div class="field" id="f-paciente"><label for="ev-paciente">Paciente / cliente</label><select class="input" id="ev-paciente" name="pacienteId"></select></div>
+              <div class="field"><label for="ev-motivo" id="l-titulo">Motivo</label><input class="input" id="ev-motivo" name="motivo" maxlength="120"></div>
+              <div class="field" id="f-area"><label for="ev-area">Área</label><select class="input" id="ev-area" name="area"></select></div>
+
+              <div class="form-row">
+                <div class="field"><label for="ev-fecha">Fecha</label><input class="input" id="ev-fecha" name="fecha" type="date" required></div>
+                <div class="field checkrow"><label><input type="checkbox" name="todoDia"> Todo el día</label></div>
+              </div>
+              <div class="form-row" id="f-horas">
+                <div class="field"><label for="ev-hora">Inicio</label><input class="input" id="ev-hora" name="hora" type="time"></div>
+                <div class="field"><label for="ev-fin">Fin</label><input class="input" id="ev-fin" name="horaFin" type="time"></div>
+              </div>
+              <div class="field"><label for="ev-lugar">Lugar o enlace (opcional)</label><input class="input" id="ev-lugar" name="lugar" maxlength="160" placeholder="Consultorio, sala, enlace de videollamada…"></div>
+              <div id="ev-msg" class="form-msg" role="alert"></div>
+            </div>
+            <div class="sheet__foot">
+              <button type="button" class="btn btn--outline" id="ev-cancel">Cancelar</button>
+              <button type="submit" class="btn btn--primary" id="ev-guardar">Guardar</button>
+            </div>
+          </form>
+        </dialog>
       </section>
 
       <!-- PACIENTES -->
