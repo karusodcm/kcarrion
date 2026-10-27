@@ -145,6 +145,3 @@ const PREGUNTAS = [
   /* 142 */ ["Le agrada viajar en un microbús repleto de gente aún cuando no tiene ningún apuro.", "Prefiere esperar otro vehículo."],
   /* 143 */ ["Le gusta resolver problemas matemáticos.", "Prefiere diseñar el modelo de casas, edificios, parques, etc."]
 ];
-
-
-

@@ -22,6 +22,9 @@
   --fuente-titulos: Georgia, "Times New Roman", serif;
   --error: #a63a3a;
   --peligro: #8b2e2e;
+  --ok: #2f6b4f;
+  --cat1: #dde2ec; --cat2: #bcc6da; --cat3: #9aa9c6; --cat4: #7a8db1;
+  --cat5: #5b71a0; --cat6: #3b5283; --cat7: #14213d;
 }
 
 /* Tema amigable: verde azulado y coral, formas redondeadas */
@@ -42,6 +45,9 @@
   --fuente-titulos: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --error: #d6452a;
   --peligro: #d6452a;
+  --ok: #0b7d6d;
+  --cat1: #daf1ed; --cat2: #b3e4dc; --cat3: #8ad6cb; --cat4: #5fc6b8;
+  --cat5: #33b3a3; --cat6: #0f9d8a; --cat7: #0a6558;
 }
 
 /* ===== Base ===== */
@@ -193,8 +199,8 @@ body {
 
 /* ===== Modo cuestionario: la tarjeta ocupa justo el alto de la pantalla ===== */
 body.modo-quiz .app {
-  height: 100vh;
-  height: 100dvh;
+  height: calc(100vh - var(--sx-nav-h, 0px));
+  height: calc(100dvh - var(--sx-nav-h, 0px));
   display: flex;
   flex-direction: column;
   padding-top: 10px;
@@ -536,8 +542,6 @@ form .nav { margin-top: 20px; }
   border-radius: var(--radio);
 }
 
-.tabla-angosta { max-width: 420px; }
-
 .tabla {
   width: 100%;
   min-width: 780px;
@@ -546,7 +550,7 @@ form .nav { margin-top: 20px; }
   font-size: 0.8rem;
 }
 
-.tabla-angosta .tabla { min-width: 0; }
+.tabla.compacta { min-width: 600px; }
 
 .tabla th,
 .tabla td {
@@ -605,7 +609,100 @@ form .nav { margin-top: 20px; }
   font-size: 0.95rem;
 }
 
-.tabla-angosta .tabla td { padding: 6px 4px; font-size: 0.9rem; }
+.tabla.compacta td { padding: 6px 6px; font-size: 0.9rem; }
+.tabla.compacta tbody th { text-align: left; }
+
+/* Marcas que no suman (VERA solo cuenta la A; CONS se evalúa por pares) */
+.tabla .m.x,
+.tabla .m.x.on {
+  background: none;
+  box-shadow: none;
+  color: var(--texto-suave);
+  opacity: 0.3;
+  text-decoration: line-through;
+}
+
+/* ===== Validez ===== */
+.validez {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.vcard {
+  background: var(--acento-suave);
+  border-left: 4px solid var(--ok);
+  border-radius: var(--radio);
+  padding: 12px 14px;
+}
+
+.vcard.mal { border-left-color: var(--error); }
+
+.v-tit {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+}
+
+.v-val {
+  font-family: var(--fuente-titulos);
+  font-size: 1.7rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--primario);
+}
+
+.v-nota { font-size: 0.85rem; font-weight: 600; color: var(--ok); }
+.vcard.mal .v-nota { color: var(--error); }
+.v-detalle { margin-top: 4px; font-size: 0.8rem; color: var(--texto-suave); overflow-wrap: anywhere; }
+
+/* ===== Gráfica de perfil ===== */
+.cat-1 { --c: var(--cat1); } .cat-2 { --c: var(--cat2); } .cat-3 { --c: var(--cat3); }
+.cat-4 { --c: var(--cat4); } .cat-5 { --c: var(--cat5); } .cat-6 { --c: var(--cat6); }
+.cat-7 { --c: var(--cat7); }
+
+.grafica-wrap {
+  overflow-x: auto;
+  margin: 8px 0;
+  padding: 8px;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+}
+
+.grafica { display: block; width: 100%; min-width: 760px; height: auto; }
+.grafica text { font-family: var(--fuente-texto); }
+.t-nombre { font-size: 13px; fill: var(--texto); }
+.t-val { font-size: 13px; font-weight: 700; fill: var(--primario); }
+.t-cat { font-size: 13px; font-weight: 700; fill: var(--texto); }
+.t-pc { font-size: 11px; fill: var(--texto-suave); }
+.t-eje { font-size: 11px; fill: var(--texto-suave); }
+.rejilla { stroke: var(--borde); stroke-width: 1; }
+.eje-linea { stroke: var(--texto-suave); stroke-width: 1.2; }
+.fila-alt { fill: var(--acento-suave); opacity: 0.55; }
+.barra-cat { fill: var(--c); stroke: var(--primario); stroke-opacity: 0.45; stroke-width: 1; }
+
+.leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin: 8px 2px 0;
+  font-size: 0.82rem;
+  color: var(--texto-suave);
+}
+
+.ley-item { display: inline-flex; align-items: center; gap: 6px; }
+
+.muestra {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  background: var(--c);
+  border: 1px solid rgba(0, 0, 0, 0.25);
+}
 
 /* ===== Ficha con los datos en la pantalla final ===== */
 .ficha {
@@ -626,6 +723,7 @@ form .nav { margin-top: 20px; }
 @media (max-width: 640px) {
   .form-grid,
   .trio,
+  .validez,
   .ficha { grid-template-columns: 1fr; }
   .ficha dt { margin-top: 6px; }
   .par { grid-template-columns: 1fr; }

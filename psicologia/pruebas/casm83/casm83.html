@@ -3,10 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Inventario de Intereses Vocacionales y Ocupacionales</title>
+  <title>Inventario CASM83-R91 · kcarrion</title>
+  <link rel="stylesheet" href="../../../assets/site.css">
   <link rel="stylesheet" href="styles.css">
+  <script src="../../../assets/site.js" defer></script>
 </head>
-<body>
+<body data-page="pruebas">
   <div class="app">
 
     <header class="topbar">
@@ -64,6 +66,16 @@
             </div>
 
             <div class="campo">
+              <label for="sexo">Sexo</label>
+              <select id="sexo">
+                <option value="">Selecciona</option>
+                <option value="varon">Varón</option>
+                <option value="mujer">Mujer</option>
+              </select>
+              <small class="err" data-err="sexo"></small>
+            </div>
+
+            <div class="campo ancho">
               <label for="lugar">Lugar de nacimiento</label>
               <input id="lugar" type="text">
               <small class="err" data-err="lugar"></small>
@@ -205,13 +217,21 @@
           <div class="dato"><span class="num" id="res-ab">0</span><span>Ambas</span></div>
         </div>
 
+        <h3>Validez de la aplicación</h3>
+        <p class="ayuda">Se revisa primero: con 5 o más respuestas "a" en VERA, o 5 o más inconsistencias, la aplicación se anula y se debe aplicar retest.</p>
+        <div id="validez" class="validez"></div>
+
         <h3>Tabla de respuestas</h3>
-        <p class="ayuda">Cada casilla es una pregunta (1 a 143, por filas). La <strong>A</strong> suma en su columna y la <strong>B</strong> suma en su fila.</p>
+        <p class="ayuda">Cada casilla es una pregunta (1 a 143, por filas). La <strong>A</strong> suma en su columna y la <strong>B</strong> suma en su fila (solo en las 11 columnas de áreas). Las marcas tachadas no suman: en VERA cuenta solo la A y CONS se evalúa comparando pares de ítems.</p>
         <div class="tabla-wrap"><table id="tabla-resultados" class="tabla"></table></div>
 
-        <h3>Puntajes por área</h3>
-        <p class="ayuda">PD = A de la columna + B de la fila. VERA y CONS no tienen fila, así que solo suman la columna.</p>
-        <div class="tabla-wrap tabla-angosta"><table id="tabla-puntajes" class="tabla"></table></div>
+        <h3>Puntajes, categoría y percentil</h3>
+        <p class="ayuda">PD = A de la columna + B de la fila (máximo 22). Categoría y percentil según el dispersigrama de <strong id="baremo-sexo">varones</strong>; el baremo da el percentil como rango de cada categoría.</p>
+        <div class="tabla-wrap"><table id="tabla-puntajes" class="tabla compacta"></table></div>
+
+        <h3>Perfil de intereses</h3>
+        <div class="grafica-wrap"><div id="grafica"></div></div>
+        <div id="leyenda" class="leyenda"></div>
 
         <h3>Revisar o corregir respuestas</h3>
         <p class="ayuda">Toca un número para volver a esa pregunta.</p>

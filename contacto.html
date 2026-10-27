@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Contacto · kcarrion</title>
+  <meta name="description" content="Escríbenos tus consultas.">
+  <link rel="stylesheet" href="assets/site.css">
+  <script src="assets/site.js" defer></script>
+</head>
+<body class="sx-page" data-page="contacto">
+
+  <section class="sx-pagehead">
+    <div class="sx-wrap">
+      <p class="sx-eyebrow">Contacto</p>
+      <h1 class="sx-h1">Escríbenos</h1>
+      <p class="sx-lead">¿Tienes una consulta o una sugerencia? Envíanos un mensaje.</p>
+    </div>
+  </section>
+
+  <main id="contenido" class="sx-section">
+    <div class="sx-wrap">
+      <div class="sx-hero__grid" style="align-items:start">
+
+        <div class="sx-card">
+          <form id="form-contacto" class="sx-form" novalidate>
+            <div class="sx-field">
+              <label for="c-nombre">Nombre</label>
+              <input id="c-nombre" type="text" autocomplete="name">
+              <span class="sx-msg" data-msg="c-nombre"></span>
+            </div>
+            <div class="sx-field">
+              <label for="c-correo">Correo electrónico</label>
+              <input id="c-correo" type="email" autocomplete="email">
+              <span class="sx-msg" data-msg="c-correo"></span>
+            </div>
+            <div class="sx-field">
+              <label for="c-mensaje">Mensaje</label>
+              <textarea id="c-mensaje"></textarea>
+              <span class="sx-msg" data-msg="c-mensaje"></span>
+            </div>
+            <div>
+              <button class="sx-btn sx-btn--primary" type="submit">Enviar mensaje</button>
+            </div>
+            <p class="sx-note">Al enviar se abrirá tu aplicación de correo con el mensaje ya escrito.</p>
+          </form>
+        </div>
+
+        <div>
+          <h2 class="sx-h2" style="margin-top:0">Otras formas de contacto</h2>
+          <p>También puedes escribirnos directamente o seguirnos en redes.</p>
+          <ul class="sx-contact-list">
+            <li>Correo: <a id="enlace-correo" href="#"></a></li>
+            <li>Redes: <span id="lista-redes"></span></li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // site.js (defer) ya se ejecutó cuando se dispara DOMContentLoaded
+    document.addEventListener('DOMContentLoaded', () => {
+      const SITE = window.SITE;
+      const enlace = document.getElementById('enlace-correo');
+      enlace.textContent = SITE.correo;
+      enlace.href = 'mailto:' + SITE.correo;
+
+      const redes = document.getElementById('lista-redes');
+      SITE.redes.forEach((r, i) => {
+        const a = document.createElement('a');
+        a.textContent = r.nombre;
+        a.href = r.url || '#';
+        if (r.url && r.url !== '#') { a.target = '_blank'; a.rel = 'noopener noreferrer'; }
+        if (i > 0) redes.appendChild(document.createTextNode(' · '));
+        redes.appendChild(a);
+      });
+
+      const form = document.getElementById('form-contacto');
+      const campos = ['c-nombre', 'c-correo', 'c-mensaje'];
+
+      function mostrar(id, texto) {
+        const campo = document.getElementById(id);
+        campo.parentElement.classList.toggle('sx-error', Boolean(texto));
+        document.querySelector(`[data-msg="${id}"]`).textContent = texto;
+      }
+
+      campos.forEach((id) => document.getElementById(id).addEventListener('input', () => mostrar(id, '')));
+
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const v = (id) => document.getElementById(id).value.trim();
+        let primero = null;
+
+        const reglas = {
+          'c-nombre': v('c-nombre') ? '' : 'Escribe tu nombre.',
+          'c-correo': /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v('c-correo')) ? '' : 'Escribe un correo válido.',
+          'c-mensaje': v('c-mensaje') ? '' : 'Escribe tu mensaje.'
+        };
+        campos.forEach((id) => {
+          mostrar(id, reglas[id]);
+          if (reglas[id] && !primero) primero = id;
+        });
+        if (primero) { document.getElementById(primero).focus(); return; }
+
+        const asunto = 'Mensaje de ' + v('c-nombre');
+        const cuerpo = v('c-mensaje') + '\n\n— ' + v('c-nombre') + ' (' + v('c-correo') + ')';
+        window.location.href = 'mailto:' + SITE.correo +
+          '?subject=' + encodeURIComponent(asunto) + '&body=' + encodeURIComponent(cuerpo);
+      });
+    });
+  </script>
+
+</body>
+</html>

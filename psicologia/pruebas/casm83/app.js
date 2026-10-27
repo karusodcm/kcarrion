@@ -10,7 +10,7 @@
   const CLAVE_GUARDADO = 'casm83-r91-progreso';
   const CLAVE_TEMA = 'casm83-r91-tema';
 
-  const CAMPOS_DATOS = ['apellidos', 'edad', 'lugar', 'dia', 'mes', 'anio', 'centro', 'grado', 'examinador'];
+  const CAMPOS_DATOS = ['apellidos', 'edad', 'sexo', 'lugar', 'dia', 'mes', 'anio', 'centro', 'grado', 'examinador'];
   const CAMPOS_ENCUESTA = [
     'oficio1', 'oficio2', 'oficio3',
     'tecnica1', 'tecnica2', 'tecnica3',
@@ -25,6 +25,71 @@
   const AREAS = ['CCFM', 'CCSS', 'CCNA', 'CCCO', 'ARTE', 'BURO', 'CCEP', 'HAA', 'FINA', 'LING', 'JURI', 'VERA', 'CONS'];
   const COLUMNAS = AREAS.length;                 // 13
   const FILAS = Math.ceil(TOTAL / COLUMNAS);     // 11
+  const N_AREAS = 11;                            // escalas de interés (filas y primeras 11 columnas)
+  const COL_VERA = 11;
+  const COL_CONS = 12;
+  const LIMITE_INVALIDO = 5;                     // 5 o más anulan la aplicación
+
+  // Nombres según el manual CASM83 (HAA aparece como IIAA en el manual)
+  const NOMBRES = {
+    CCFM: 'Ciencias Físico-Matemática',
+    CCSS: 'Ciencias Sociales',
+    CCNA: 'Ciencias Naturales',
+    CCCO: 'Ciencias de la Comunicación',
+    ARTE: 'Artes',
+    BURO: 'Burocracia',
+    CCEP: 'Ciencias Económicas Políticas',
+    HAA: 'Institutos Armados',
+    FINA: 'Finanzas',
+    LING: 'Lingüística',
+    JURI: 'Jurisprudencia'
+  };
+
+  // Pares de ítems repetidos para la escala de consistencia
+  const PARES_CONS = [[13, 131], [26, 132], [39, 133], [52, 134], [65, 135], [78, 136],
+    [91, 137], [104, 138], [117, 139], [130, 140], [143, 1]];
+
+  // Dispersigrama: categorías y percentiles (rango de cada categoría)
+  const CATEGORIAS = ['Desinterés', 'Bajo', 'Promedio bajo', 'Indecisión', 'Promedio alto', 'Alto', 'Muy alto'];
+  const PERCENTILES = ['1–14', '15–29', '30–39', '40–60', '61–74', '75–89', '90–99'];
+
+  // Límite superior del puntaje directo de cada categoría, por área y sexo
+  const BAREMO = {
+    varon: {
+      CCFM: [4, 7, 9, 13, 15, 17, 22],
+      CCSS: [3, 6, 8, 12, 14, 16, 22],
+      CCNA: [4, 7, 9, 13, 15, 18, 22],
+      CCCO: [2, 4, 6, 10, 13, 17, 22],
+      ARTE: [2, 4, 6, 10, 14, 17, 22],
+      BURO: [3, 5, 7, 11, 13, 16, 22],
+      CCEP: [3, 5, 7, 12, 14, 17, 22],
+      HAA: [3, 5, 7, 12, 14, 17, 22],
+      FINA: [2, 4, 6, 10, 12, 16, 22],
+      LING: [2, 4, 6, 9, 12, 15, 22],
+      JURI: [2, 4, 6, 10, 13, 16, 22]
+    },
+    mujer: {
+      CCFM: [2, 4, 6, 11, 14, 17, 22],
+      CCSS: [4, 7, 9, 14, 16, 19, 22],
+      CCNA: [3, 5, 7, 12, 14, 17, 22],
+      CCCO: [2, 4, 6, 11, 13, 16, 22],
+      ARTE: [2, 4, 6, 11, 13, 16, 22],
+      BURO: [4, 7, 9, 14, 16, 19, 22],
+      CCEP: [2, 5, 7, 12, 14, 17, 22],
+      HAA: [2, 4, 6, 9, 12, 15, 22],
+      FINA: [2, 5, 7, 12, 14, 17, 22],
+      LING: [2, 5, 7, 12, 14, 17, 22],
+      JURI: [2, 4, 6, 11, 13, 16, 22]
+    }
+  };
+
+  function indiceCategoria(area, pd, sexo) {
+    const limites = (BAREMO[sexo] || BAREMO.varon)[area];
+    const k = limites.findIndex((max) => pd <= max);
+    return k === -1 ? limites.length - 1 : k;
+  }
+
+  const textoSexo = () => (estado.datos.sexo === 'varon' ? 'Varón' : 'Mujer');
 
   // Estado:
   //   etapa: 'datos' | 'encuesta' | 'quiz'
@@ -144,6 +209,8 @@
     ['apellidos', 'lugar', 'centro', 'grado', 'examinador'].forEach((k) => {
       if (!v(k)) e[k] = 'Este dato es obligatorio.';
     });
+
+    if (!['varon', 'mujer'].includes(v('sexo'))) e.sexo = 'Selecciona una opción.';
 
     const edad = Number(v('edad'));
     if (!v('edad')) e.edad = 'Ingresa la edad.';
@@ -428,6 +495,7 @@
     return [
       ['Apellidos y nombres', d.apellidos],
       ['Edad', d.edad],
+      ['Sexo', textoSexo()],
       ['Lugar de nacimiento', d.lugar],
       ['Fecha de nacimiento', `${Number(d.dia)} de ${MESES[Number(d.mes) - 1]} de ${Number(d.anio)}`],
       ['Centro educativo', d.centro],
@@ -439,17 +507,33 @@
     ];
   }
 
-  // La A suma en la columna de su casilla y la B suma en la fila.
-  // Si se marcaron ambas, cuenta en las dos.
+  // ===== Calificación =====
+  // A suma en la columna de su casilla; B suma en la fila, pero solo en las 11 columnas de áreas
+  // (las casillas de VERA y CONS no aportan a las áreas). Si se marcaron ambas, cuenta en las dos.
   function calcularPuntajes() {
     const colA = new Array(COLUMNAS).fill(0);
     const filaB = new Array(FILAS).fill(0);
     estado.respuestas.forEach((r, i) => {
-      if (r.includes('a')) colA[i % COLUMNAS]++;
-      if (r.includes('b')) filaB[Math.floor(i / COLUMNAS)]++;
+      const f = Math.floor(i / COLUMNAS);
+      const c = i % COLUMNAS;
+      if (r.includes('a')) colA[c]++;
+      if (r.includes('b') && c < N_AREAS) filaB[f]++;
     });
-    const pd = AREAS.map((_, k) => colA[k] + (k < FILAS ? filaB[k] : 0));
-    return { colA, filaB, pd };
+
+    const perfil = AREAS.slice(0, N_AREAS).map((area, k) => {
+      const pd = colA[k] + filaB[k];
+      const cat = indiceCategoria(area, pd, estado.datos.sexo);
+      return { area, a: colA[k], b: filaB[k], pd, cat, categoria: CATEGORIAS[cat], percentil: PERCENTILES[cat] };
+    });
+
+    // Veracidad: respuestas "a" en la columna VERA
+    const vera = colA[COL_VERA];
+    // Consistencia: pares de ítems repetidos cuya respuesta no coincide
+    const inconsistentes = PARES_CONS.filter(([x, y]) => estado.respuestas[x - 1] !== estado.respuestas[y - 1]);
+    const veraOk = vera < LIMITE_INVALIDO;
+    const consOk = inconsistentes.length < LIMITE_INVALIDO;
+
+    return { colA, filaB, perfil, vera, veraOk, inconsistentes, consOk, valida: veraOk && consOk };
   }
 
   function celda(tag, texto, clase) {
@@ -459,10 +543,44 @@
     return el;
   }
 
-  function armarTablas() {
-    const { colA, filaB, pd } = calcularPuntajes();
+  function armarValidez(r) {
+    const cont = $('validez');
+    cont.innerHTML = '';
 
-    // Tabla de respuestas (11 filas x 13 columnas) con totales
+    const tarjeta = (titulo, valor, nota, ok, detalle) => {
+      const d = celda('div', undefined, 'vcard' + (ok ? '' : ' mal'));
+      d.appendChild(celda('div', titulo, 'v-tit'));
+      d.appendChild(celda('div', valor, 'v-val'));
+      d.appendChild(celda('div', (ok ? '✓ ' : '✕ ') + nota, 'v-nota'));
+      if (detalle) d.appendChild(celda('div', detalle, 'v-detalle'));
+      return d;
+    };
+
+    cont.appendChild(tarjeta(
+      'Veracidad (VERA)',
+      `${r.vera} resp. "a"`,
+      r.veraOk ? 'Válida (menos de 5)' : 'Anula la aplicación (5 o más)',
+      r.veraOk
+    ));
+
+    const pares = r.inconsistentes.map(([x, y]) => `${x}↔${y}`).join(', ');
+    cont.appendChild(tarjeta(
+      'Consistencia (CONS)',
+      `${r.inconsistentes.length} inconsistencias`,
+      r.consOk ? 'Consistente (menos de 5)' : 'Anula la aplicación (5 o más)',
+      r.consOk,
+      pares ? `Pares distintos: ${pares}` : 'Los 11 pares coinciden'
+    ));
+
+    cont.appendChild(tarjeta(
+      '¿Aplicar retest?',
+      r.valida ? 'No' : 'Sí',
+      r.valida ? 'Aplicación válida: el perfil se puede interpretar' : 'Aplicación no válida: no interpretar el perfil',
+      r.valida
+    ));
+  }
+
+  function armarTablaRespuestas(r) {
     const t = $('tabla-resultados');
     t.innerHTML = '';
 
@@ -479,36 +597,111 @@
       tr.appendChild(th);
       for (let c = 0; c < COLUMNAS; c++) {
         const i = f * COLUMNAS + c;
-        const r = estado.respuestas[i];
+        const resp = estado.respuestas[i];
+        const noA = c === COL_CONS;   // en CONS la A no suma
+        const noB = c >= N_AREAS;     // en VERA y CONS la B no suma en la fila
         const td = celda('td', undefined, 'celda');
         td.appendChild(celda('span', String(i + 1), 'n'));
-        td.appendChild(celda('span', 'A', 'm a' + (r.includes('a') ? ' on' : '')));
-        td.appendChild(celda('span', 'B', 'm b' + (r.includes('b') ? ' on' : '')));
+        td.appendChild(celda('span', 'A', 'm a' + (resp.includes('a') ? ' on' : '') + (noA ? ' x' : '')));
+        td.appendChild(celda('span', 'B', 'm b' + (resp.includes('b') ? ' on' : '') + (noB ? ' x' : '')));
         tr.appendChild(td);
       }
-      tr.appendChild(celda('td', String(filaB[f]), 'tot'));
+      tr.appendChild(celda('td', String(r.filaB[f]), 'tot'));
     }
 
     const pie = t.createTFoot().insertRow();
     pie.appendChild(celda('th', 'Σ A col.'));
-    colA.forEach((n) => pie.appendChild(celda('td', String(n))));
+    r.colA.forEach((n, c) => pie.appendChild(celda('td', c === COL_CONS ? '—' : String(n))));
     pie.appendChild(celda('td', ''));
+  }
 
-    // Puntajes por área
+  function armarTablaPuntajes(r) {
+    $('baremo-sexo').textContent = estado.datos.sexo === 'varon' ? 'varones' : 'mujeres';
     const p = $('tabla-puntajes');
     p.innerHTML = '';
-    const ph = p.createTHead().insertRow();
-    ['Área', 'A (columna)', 'B (fila)', 'PD'].forEach((x) => ph.appendChild(celda('th', x)));
-    const pb = p.createTBody();
-    AREAS.forEach((a, k) => {
-      const tr = pb.insertRow();
-      const th = celda('th', a);
+
+    const cab = p.createTHead().insertRow();
+    ['Área', 'A (col.)', 'B (fila)', 'PD', 'Categoría', 'Percentil'].forEach((x) => cab.appendChild(celda('th', x)));
+
+    const cuerpo = p.createTBody();
+    r.perfil.forEach((x) => {
+      const tr = cuerpo.insertRow();
+      const th = celda('th', `${NOMBRES[x.area]} (${x.area})`);
       th.scope = 'row';
       tr.appendChild(th);
-      tr.appendChild(celda('td', String(colA[k])));
-      tr.appendChild(celda('td', k < FILAS ? String(filaB[k]) : '—'));
-      tr.appendChild(celda('td', String(pd[k]), 'tot'));
+      tr.appendChild(celda('td', String(x.a)));
+      tr.appendChild(celda('td', String(x.b)));
+      tr.appendChild(celda('td', String(x.pd), 'tot'));
+      tr.appendChild(celda('td', x.categoria));
+      tr.appendChild(celda('td', x.percentil));
     });
+  }
+
+  // Gráfica de barras horizontales (SVG): puntaje directo por área, coloreado por categoría
+  function armarGrafica(r) {
+    const NS = 'http://www.w3.org/2000/svg';
+    const el = (tag, attrs = {}, texto) => {
+      const e = document.createElementNS(NS, tag);
+      Object.entries(attrs).forEach(([k, v]) => e.setAttribute(k, v));
+      if (texto !== undefined) e.textContent = texto;
+      return e;
+    };
+
+    const W = 900, FILA = 36, TOP = 8, X0 = 310, ANCHO = 350, MAX = 22;
+    const H = TOP + FILA * N_AREAS + 40;
+    const x = (v) => X0 + (v / MAX) * ANCHO;
+    const base = TOP + FILA * N_AREAS;
+
+    const resumen = r.perfil.map((p) => `${NOMBRES[p.area]} ${p.pd}`).join('; ');
+    const svg = el('svg', {
+      viewBox: `0 0 ${W} ${H}`,
+      class: 'grafica',
+      role: 'img',
+      'aria-label': `Perfil de intereses, puntaje directo por área: ${resumen}`
+    });
+
+    r.perfil.forEach((p, i) => {
+      if (i % 2 === 0) svg.appendChild(el('rect', { x: 0, y: TOP + i * FILA, width: W, height: FILA, class: 'fila-alt' }));
+    });
+
+    for (let v = 0; v <= MAX; v += 2) {
+      svg.appendChild(el('line', { x1: x(v), x2: x(v), y1: TOP, y2: base, class: v === 0 ? 'eje-linea' : 'rejilla' }));
+      svg.appendChild(el('text', { x: x(v), y: base + 16, 'text-anchor': 'middle', class: 't-eje' }, String(v)));
+    }
+    svg.appendChild(el('text', { x: X0 + ANCHO / 2, y: base + 34, 'text-anchor': 'middle', class: 't-eje' }, 'Puntaje directo (0 – 22)'));
+
+    r.perfil.forEach((p, i) => {
+      const y = TOP + i * FILA;
+      const g = el('g');
+      g.appendChild(el('title', {}, `${NOMBRES[p.area]} (${p.area}): PD ${p.pd}, ${p.categoria}, percentil ${p.percentil}`));
+      g.appendChild(el('text', { x: X0 - 12, y: y + 23, 'text-anchor': 'end', class: 't-nombre' }, `${NOMBRES[p.area]} (${p.area})`));
+      g.appendChild(el('rect', { x: X0, y: y + 7, width: Math.max(x(p.pd) - X0, 2), height: 22, rx: 3, class: `barra-cat cat-${p.cat + 1}` }));
+      g.appendChild(el('text', { x: x(p.pd) + 8, y: y + 23, class: 't-val' }, String(p.pd)));
+      g.appendChild(el('text', { x: 692, y: y + 17, class: 't-cat' }, p.categoria));
+      g.appendChild(el('text', { x: 692, y: y + 31, class: 't-pc' }, `Percentil ${p.percentil}`));
+      svg.appendChild(g);
+    });
+
+    const cont = $('grafica');
+    cont.innerHTML = '';
+    cont.appendChild(svg);
+
+    const ley = $('leyenda');
+    ley.innerHTML = '';
+    CATEGORIAS.forEach((c, k) => {
+      const item = celda('span', undefined, 'ley-item');
+      item.appendChild(celda('i', undefined, `muestra cat-${k + 1}`));
+      item.appendChild(document.createTextNode(`${c} (percentil ${PERCENTILES[k]})`));
+      ley.appendChild(item);
+    });
+  }
+
+  function armarTablas() {
+    const r = calcularPuntajes();
+    armarValidez(r);
+    armarTablaRespuestas(r);
+    armarTablaPuntajes(r);
+    armarGrafica(r);
   }
 
   function finalizar() {
@@ -569,6 +762,7 @@
     const datos = [
       ['Apellidos y nombres', d.apellidos],
       ['Edad', d.edad],
+      ['Sexo', textoSexo()],
       ['Lugar de nacimiento', d.lugar],
       ['Fecha de nacimiento', textoFecha()],
       ['Centro educativo', d.centro],
@@ -588,11 +782,18 @@
 
     estado.respuestas.forEach((r, i) => filas.push(['Cuestionario', `Pregunta ${i + 1}`, r]));
 
-    const { colA, filaB, pd } = calcularPuntajes();
-    AREAS.forEach((a, k) => {
-      filas.push(['Puntajes', `${a} · A (columna)`, colA[k]]);
-      if (k < FILAS) filas.push(['Puntajes', `${a} · B (fila)`, filaB[k]]);
-      filas.push(['Puntajes', `${a} · PD`, pd[k]]);
+    const r = calcularPuntajes();
+    filas.push(['Validez', 'Veracidad: respuestas A en VERA', r.vera]);
+    filas.push(['Validez', 'Consistencia: inconsistencias', r.inconsistentes.length]);
+    filas.push(['Validez', 'Aplicación válida', r.valida ? 'Sí' : 'No']);
+    filas.push(['Validez', 'Retest', r.valida ? 'No' : 'Sí']);
+    r.perfil.forEach((p) => {
+      const n = `${NOMBRES[p.area]} (${p.area})`;
+      filas.push(['Puntajes', `${n} · A (columna)`, p.a]);
+      filas.push(['Puntajes', `${n} · B (fila)`, p.b]);
+      filas.push(['Puntajes', `${n} · PD`, p.pd]);
+      filas.push(['Puntajes', `${n} · Categoría`, p.categoria]);
+      filas.push(['Puntajes', `${n} · Percentil`, p.percentil]);
     });
 
     const csv = filas.map((f) => f.map(esc).join(',')).join('\n');
