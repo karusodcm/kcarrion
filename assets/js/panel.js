@@ -4,7 +4,7 @@
    cita, reunión, turno, reservado y no disponible (sin tipo = cita).
    Las tareas viven en data.tareas ({texto, hecha, importante}).
    Reunión guarda un "subtipo" (reunión, charla, evento u otros) y turno guarda
-   "turno" (mañana, tarde o noche). */
+   "turno" (mañana, tarde o noche); asistencia también usa "turno". */
 (function () {
   "use strict";
 
@@ -18,6 +18,7 @@
     cita:      { label: "Cita",          icon: "🩺", color: "#3b958d" },
     reunion:   { label: "Reunión",       icon: "👥", color: "#3f78b5" },
     turno:     { label: "Turno",         icon: "🕒", color: "#8a63b8", block: true, sinCruce: true },
+    asistencia:{ label: "Asistencia",    icon: "✅", color: "#c9772b", block: true, sinCruce: true },
     reservado: { label: "Reservado",     icon: "🔖", color: "#7a8a3a", block: true },
     nodisp:    { label: "No disponible", icon: "⛔", color: "#6b7a78", block: true }
   };
@@ -38,11 +39,13 @@
   const isBlock = (c) => Boolean(TIPOS[tipoOf(c)].block);
   const subOf = (c) => (SUBTIPOS[c.subtipo] ? c.subtipo : "reunion");
   const turnoOf = (c) => (TURNOS[c.turno] ? c.turno : "manana");
+  const usaTurno = (t) => t === "turno" || t === "asistencia";   // tipos con selector Mañana/Tarde/Noche
   const iconOf = (c) => (tipoOf(c) === "reunion" ? SUBTIPOS[subOf(c)].icon : TIPOS[tipoOf(c)].icon);
   const labelOf = (c) => {
     const t = tipoOf(c);
     if (t === "reunion") return SUBTIPOS[subOf(c)].label;
     if (t === "turno") return "Turno · " + TURNOS[turnoOf(c)].label;
+    if (t === "asistencia") return "Asistencia · " + TURNOS[turnoOf(c)].label;
     return TIPOS[t].label;
   };
 
@@ -102,14 +105,15 @@
     return [s, e];
   }
   function timeLabel(c) {
-    if (tipoOf(c) === "turno") return TURNOS[turnoOf(c)].label;
+    if (usaTurno(tipoOf(c))) return TURNOS[turnoOf(c)].label;
     if (c.todoDia) return "Todo el día";
     if (c.horaFin) return c.hora + "–" + c.horaFin;
     if (c.duracion) return c.hora + "–" + fromMin(toMin(c.hora) + Number(c.duracion));
     return c.hora || "";
   }
   const titleOf = (c) => c.motivo || (tipoOf(c) === "cita" ? (c.area || "Cita")
-    : tipoOf(c) === "turno" ? "Turno de " + TURNOS[turnoOf(c)].label.toLowerCase() : labelOf(c));
+    : tipoOf(c) === "turno" ? "Turno de " + TURNOS[turnoOf(c)].label.toLowerCase()
+    : tipoOf(c) === "asistencia" ? "Asistencia de " + TURNOS[turnoOf(c)].label.toLowerCase() : labelOf(c));
   const sortItems = (arr) => arr.slice().sort((a, b) =>
     a.fecha.localeCompare(b.fecha) || ((a.todoDia ? 0 : 1) - (b.todoDia ? 0 : 1)) || (a.hora || "").localeCompare(b.hora || ""));
 
@@ -145,7 +149,7 @@
     const cls = c.estado === "atendida" ? " item--done" : c.estado === "cancelada" ? " item--cancel" : "";
     const name = t === "cita" ? (patientName(c.pacienteId) || "Personal") : "";
     const meta = [labelOf(c), name, t === "cita" ? c.area : "", c.lugar].filter(Boolean).join(" · ");
-    const esTurno = t === "turno";
+    const esTurno = usaTurno(t);
     const whenMain = esTurno ? esc(TURNOS[turnoOf(c)].label) : c.todoDia ? "Todo el día" : esc(c.hora);
     const whenSmall = opts.hideDate ? (esTurno || c.todoDia || !c.horaFin ? "" : "– " + esc(c.horaFin)) : esc(shortDate(c.fecha));
 
@@ -222,7 +226,7 @@
       const blocked = items.some((c) => tipoOf(c) === "nodisp" && c.todoDia);
       const cls = ["cal-day", d.getMonth() !== m ? "is-out" : "", ds === t ? "is-today" : "", blocked ? "is-blocked" : ""].filter(Boolean).join(" ");
       const chips = items.slice(0, 2).map((c) =>
-        `<span class="cal-chip" style="--c:${TIPOS[tipoOf(c)].color}">${c.todoDia || tipoOf(c) === "turno" ? "" : esc(c.hora) + " "}${esc(titleOf(c))}</span>`).join("");
+        `<span class="cal-chip" style="--c:${TIPOS[tipoOf(c)].color}">${c.todoDia || usaTurno(tipoOf(c)) ? "" : esc(c.hora) + " "}${esc(titleOf(c))}</span>`).join("");
       const more = items.length > 2 ? `<span class="cal-more">+${items.length - 2} más</span>` : "";
       const dots = items.length ? `<span class="cal-dots">${items.slice(0, 4).map((c) => `<i style="--c:${TIPOS[tipoOf(c)].color}"></i>`).join("")}</span>` : "";
       const label = d.toLocaleDateString("es-PE", { day: "numeric", month: "long" }) + (items.length ? ", " + items.length + (items.length === 1 ? " actividad" : " actividades") : ", sin actividades");
@@ -380,7 +384,7 @@
     const f = evForm();
     const t = f.elements["tipo"].value || "cita";
     const T = TIPOS[t];
-    const esTurno = t === "turno";
+    const esTurno = usaTurno(t);
     $("#f-paciente").hidden = t !== "cita";
     $("#f-subtipo").hidden = t !== "reunion";
     $("#f-turno").hidden = !esTurno;
@@ -389,7 +393,7 @@
     const lbl = $("#l-titulo");
     lbl.textContent = t === "cita" ? "Motivo (opcional)" : T.block ? "Nota (opcional)" : "Título";
     $("#ev-motivo").placeholder = t === "cita" ? "Valoración inicial, seguimiento…"
-      : esTurno ? "Ej.: guardia, consultorio…" : T.block ? "Ej.: capacitación, trámite…" : "";
+      : t === "asistencia" ? "Ej.: asistió, sin novedades…" : esTurno ? "Ej.: guardia, consultorio…" : T.block ? "Ej.: capacitación, trámite…" : "";
   }
 
   function openDialog(opts = {}) {
@@ -443,7 +447,7 @@
     e.preventDefault();
     const f = e.target, m = $("#ev-msg");
     const tipo = f.elements["tipo"].value || "cita";
-    const esTurno = tipo === "turno";
+    const esTurno = usaTurno(tipo);
     const turnoSel = TURNOS[f.turno.value] ? f.turno.value : "manana";
     const todoDia = esTurno ? false : f.todoDia.checked;
     const motivo = f.motivo.value.trim();
@@ -689,9 +693,6 @@
     KEY = "kcarrion:data:" + user.id;
     data = load();
 
-    const nombre = (user.email || "").split("@")[0];
-    $("#saludo").textContent = "Hola, " + nombre;
-    $("#sesion").textContent = "Sesión iniciada como " + user.email + " · " + new Date().toLocaleDateString("es-PE", { weekday: "long", day: "numeric", month: "long" });
     if (!window.KAuth.configured) $("#demo-note").style.display = "";
 
     buildTipoChips();

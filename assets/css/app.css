@@ -186,3 +186,50 @@
   .tarea__texto { flex-basis: calc(100% - 120px); }
   .tarea .btn--danger { margin-left: auto; }
 }
+
+/* ---------- Menú de usuario (navbar) ---------- */
+[hidden] { display: none !important; }
+.user-menu { position: relative; margin-left: .75rem; }
+.navbar__inner > .nav { margin-left: auto; }
+.user-menu__btn {
+  position: relative; width: 44px; height: 44px; display: grid; place-items: center; padding: 0;
+  border: 1px solid var(--border); border-radius: 50%; background: #fff; color: var(--brand-900); cursor: pointer;
+}
+.user-menu__btn:hover, .user-menu__btn[aria-expanded="true"] { background: var(--brand-50); border-color: var(--brand); color: var(--brand-700); }
+.user-menu__dot { position: absolute; right: 1px; top: 1px; width: 11px; height: 11px; border-radius: 50%; background: #2fa36b; border: 2px solid #fff; }
+.user-menu__panel {
+  position: absolute; right: 0; top: calc(100% + 10px); z-index: 60; width: min(340px, calc(100vw - 2rem));
+  background: #fff; border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-lg); padding: 1.1rem;
+}
+.user-card__hello { margin: 0 0 .9rem; font-weight: 700; color: var(--brand-900); }
+.user-card__links { display: grid; gap: .5rem; }
+.user-card__forgot { text-align: center; font-size: .88rem; padding-top: .35rem; }
+.user-card__head { display: flex; align-items: center; gap: .75rem; padding-bottom: .9rem; border-bottom: 1px solid var(--border); }
+.user-card__head div { min-width: 0; display: grid; }
+.user-card__head b { color: var(--brand-900); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.user-card__head div span { color: var(--text-muted); font-size: .84rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.user-card__avatar { flex: none; width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; background: var(--brand); color: #fff; font-weight: 800; }
+.user-card__list { margin: .8rem 0 1rem; display: grid; gap: .55rem; max-height: 46vh; overflow: auto; }
+.user-card__row { display: grid; gap: .05rem; }
+.user-card__row dt { font-size: .72rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--brand-700); }
+.user-card__row dd { margin: 0; font-size: .94rem; word-break: break-word; }
+.user-card__empty { color: var(--text-muted); font-style: italic; }
+
+/* ---------- Registro ---------- */
+.auth__card--wide { width: min(620px, 100%); }
+.form-row--3 { grid-template-columns: repeat(3, 1fr); }
+.auth__forgot { margin: -.25rem 0 1rem; text-align: right; font-size: .9rem; }
+select.input { appearance: auto; }
+select.input:disabled { background: var(--bg-soft); color: var(--text-muted); cursor: not-allowed; }
+@media (max-width: 620px) { .form-row--3 { grid-template-columns: 1fr; } }
+
+.form-row--flex { display: flex; flex-wrap: wrap; gap: .9rem; }
+.form-row--flex > .field { flex: 1 1 220px; min-width: 0; }
+@media (max-width: 1040px) { .user-menu { margin-left: auto; margin-right: .5rem; } }
+@media (max-width: 560px) {
+  .user-menu { position: static; }
+  .user-menu__panel { position: fixed; top: 80px; left: 1rem; right: 1rem; width: auto; }
+}
+
+.perfil-actions { display: flex; justify-content: flex-end; gap: .6rem; margin-top: .5rem; }
+.input[readonly] { background: var(--bg-soft); color: var(--text-muted); cursor: not-allowed; }
