@@ -108,6 +108,9 @@
         : c.estado === "cancelada" ? '<span class="badge badge--cancel">Cancelada</span>'
         : overdue ? '<span class="badge badge--warn">Por cerrar</span>' : '<span class="badge">Pendiente</span>';
     }
+    // Etiquetas de prioridad (solo se muestran cuando aplican)
+    if (c.urgente) badge += ' <span class="badge badge--urg">Urgente</span>';
+    if (c.importante) badge += ' <span class="badge badge--imp">Importante</span>';
     const cls = c.estado === "atendida" ? " item--done" : c.estado === "cancelada" ? " item--cancel" : "";
     const name = t === "cita" ? (patientName(c.pacienteId) || "Personal") : "";
     const meta = [T.label, name, t === "cita" ? c.area : "", c.lugar].filter(Boolean).join(" · ");
@@ -146,7 +149,6 @@
     const keep = (sel, html) => { const v = sel.value; sel.innerHTML = html; if ([...sel.options].some((o) => o.value === v)) sel.value = v; };
     keep($("#ev-paciente"), optionsPacientes(true));
     keep($("#n-paciente"), optionsPacientes(true));
-    keep($("#ev-area"), AREAS.map((a) => `<option>${esc(a)}</option>`).join(""));
   }
 
   function renderStats() {
@@ -319,7 +321,6 @@
     const t = f.elements["tipo"].value || "cita";
     const T = TIPOS[t];
     $("#f-paciente").hidden = t !== "cita";
-    $("#f-area").hidden = t !== "cita";
     $("#f-horas").hidden = f.todoDia.checked;
     const lbl = $("#l-titulo");
     lbl.textContent = t === "cita" ? "Motivo (opcional)" : T.block ? "Nota (opcional)" : "Título";
@@ -337,12 +338,13 @@
     f.elements["tipo"].value = c ? tipoOf(c) : (opts.tipo || "cita");
     f.pacienteId.value = c ? (c.pacienteId || "") : "";
     f.motivo.value = c ? (c.motivo || "") : "";
-    if (c && c.area) f.area.value = c.area;
     f.fecha.value = c ? c.fecha : (opts.fecha || selDate);
     f.todoDia.checked = c ? Boolean(c.todoDia) : false;
     f.hora.value = c ? (c.hora || "") : "09:00";
     f.horaFin.value = c ? (c.horaFin || (c.hora && c.duracion ? fromMin(toMin(c.hora) + Number(c.duracion)) : "")) : "09:45";
     f.lugar.value = c ? (c.lugar || "") : "";
+    f.urgencia.value = c && c.urgente ? "si" : "no";
+    f.importancia.value = c && c.importante ? "si" : "no";
 
     $("#ev-titulo").textContent = c ? "Editar entrada" : "Nueva entrada";
     $("#ev-guardar").textContent = c ? "Guardar cambios" : "Guardar";
@@ -368,7 +370,7 @@
     }
   });
 
-  $("#ev-form").addEventListener("submit", (e) => {
+  $("#ev-form").addEventListener("submit", async (e) => {
     e.preventDefault();
     const f = e.target, m = $("#ev-msg");
     const tipo = f.elements["tipo"].value || "cita";
@@ -386,14 +388,16 @@
     const item = {
       id, tipo, estado: prev ? prev.estado : "pendiente",
       pacienteId: tipo === "cita" ? f.pacienteId.value : "",
-      area: tipo === "cita" ? f.area.value : "",
+      area: prev ? (prev.area || "") : "",
       fecha: f.fecha.value, todoDia,
       hora: todoDia ? "" : f.hora.value, horaFin: todoDia ? "" : f.horaFin.value,
-      motivo, lugar: f.lugar.value.trim()
+      motivo, lugar: f.lugar.value.trim(),
+      urgente: f.urgencia.value === "si",
+      importante: f.importancia.value === "si"
     };
 
     const clash = findOverlap(item, id);
-    if (clash && !confirm("Se cruza con «" + titleOf(clash) + "» (" + timeLabel(clash) + "). ¿Guardar de todas formas?")) return;
+    if (clash && !(await askConfirm("Se cruza con «" + titleOf(clash) + "» (" + timeLabel(clash) + "). ¿Guardar de todas formas?", { titulo: "Horario cruzado", si: "Guardar" }))) return;
 
     if (prev) Object.assign(prev, item); else data.citas.push(item);
     selDate = item.fecha;
@@ -401,6 +405,26 @@
     closeDialog();
     commit();
   });
+
+  // Ventana emergente de confirmación (reemplaza a window.confirm)
+  function askConfirm(texto, opts) {
+    opts = opts || {};
+    const d = $("#confirm-dialog"), si = $("#cf-si"), no = $("#cf-no");
+    $("#cf-titulo").textContent = opts.titulo || "Confirmar";
+    $("#cf-texto").textContent = texto;
+    si.textContent = opts.si || "Aceptar";
+    si.classList.toggle("btn--danger-solid", !!opts.peligro);
+    si.classList.toggle("btn--primary", !opts.peligro);
+    return new Promise((resolve) => {
+      const done = (v) => { si.onclick = no.onclick = d.onclose = d.onclick = null; if (d.open) d.close(); resolve(v); };
+      si.onclick = () => done(true);
+      no.onclick = () => done(false);
+      d.onclose = () => done(false);
+      d.onclick = (e) => { if (e.target === d) done(false); };
+      d.showModal();
+      no.focus();
+    });
+  }
 
   $("#ev-cerrar").addEventListener("click", closeDialog);
   $("#ev-cancel").addEventListener("click", closeDialog);
@@ -457,7 +481,7 @@
     }
   }
 
-  document.addEventListener("click", (e) => {
+  document.addEventListener("click", async (e) => {
     const b = e.target.closest("[data-action]");
     if (!b) return;
     const id = b.dataset.id;
@@ -469,11 +493,11 @@
       case "ev-reabrir": return setEstado(id, "pendiente");
       case "ev-edit": return openDialog({ id });
       case "ev-del":
-        if (confirm("¿Eliminar esta entrada de la agenda?")) { data.citas = data.citas.filter((c) => c.id !== id); commit(); }
+        if (await askConfirm("¿Eliminar esta entrada de la agenda?", { titulo: "Eliminar entrada", si: "Eliminar", peligro: true })) { data.citas = data.citas.filter((c) => c.id !== id); commit(); }
         return;
       case "pac-ver": selected = id; return renderPacientes();
       case "pac-del":
-        if (confirm("¿Eliminar este paciente con sus citas y su historial? Las notas quedarán como personales.")) {
+        if (await askConfirm("¿Eliminar este paciente con sus citas y su historial? Las notas quedarán como personales.", { titulo: "Eliminar paciente", si: "Eliminar", peligro: true })) {
           data.pacientes = data.pacientes.filter((p) => p.id !== id);
           data.citas = data.citas.filter((c) => c.pacienteId !== id);
           data.evoluciones = data.evoluciones.filter((x) => x.pacienteId !== id);
@@ -483,10 +507,10 @@
         }
         return;
       case "evo-del":
-        if (confirm("¿Eliminar este registro del historial?")) { data.evoluciones = data.evoluciones.filter((x) => x.id !== id); commit(); }
+        if (await askConfirm("¿Eliminar este registro del historial?", { titulo: "Eliminar registro", si: "Eliminar", peligro: true })) { data.evoluciones = data.evoluciones.filter((x) => x.id !== id); commit(); }
         return;
       case "nota-del":
-        if (confirm("¿Eliminar esta nota?")) { data.notas = data.notas.filter((n) => n.id !== id); commit(); }
+        if (await askConfirm("¿Eliminar esta nota?", { titulo: "Eliminar nota", si: "Eliminar", peligro: true })) { data.notas = data.notas.filter((n) => n.id !== id); commit(); }
         return;
     }
   });
@@ -537,13 +561,13 @@
     e.target.value = "";
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => {
+    reader.onload = async () => {
       try {
         const parsed = JSON.parse(reader.result);
         const incoming = normalize(parsed && parsed.datos ? parsed.datos : parsed);
         const total = Object.values(incoming).reduce((n, a) => n + a.length, 0);
         if (!total) return flash($("#r-msg"), "El archivo no contiene datos de kcarrion.");
-        if (!confirm("Esto reemplazará tus datos actuales en este navegador. ¿Continuar?")) return;
+        if (!(await askConfirm("Esto reemplazará tus datos actuales en este navegador. ¿Continuar?", { titulo: "Restaurar respaldo", si: "Continuar" }))) return;
         data = incoming; selected = null;
         commit();
         flash($("#r-msg"), "Datos restaurados.", true);
@@ -552,8 +576,8 @@
     reader.readAsText(file);
   });
 
-  $("#borrar-todo").addEventListener("click", () => {
-    if (!confirm("¿Borrar TODA tu información de este navegador? No se puede deshacer.")) return;
+  $("#borrar-todo").addEventListener("click", async () => {
+    if (!(await askConfirm("¿Borrar TODA tu información de este navegador? No se puede deshacer.", { titulo: "Borrar todo", si: "Borrar todo", peligro: true }))) return;
     data = empty(); selected = null;
     commit();
     flash($("#r-msg"), "Datos eliminados.", true);
@@ -574,9 +598,10 @@
     buildTipoChips();
     renderAll();
 
-    let vista = "calendario", tab = "resumen";
-    try { vista = sessionStorage.getItem("kcarrion:vista") || vista; tab = sessionStorage.getItem("kcarrion:tab") || tab; } catch (e) {}
+    // Siempre se abre en Agenda (no se recuerda la última pestaña).
+    let vista = "calendario";
+    try { vista = sessionStorage.getItem("kcarrion:vista") || vista; } catch (e) {}
     setVista(vista === "lista" ? "lista" : "calendario");
-    showTab($("#tab-" + tab) ? tab : "resumen");
+    showTab("agenda");
   })();
 })();

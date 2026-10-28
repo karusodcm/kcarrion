@@ -65,6 +65,10 @@ body.dialog-open .fab { display: none !important; }
   border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);
 }
 .sheet::backdrop { background: rgba(18, 49, 46, .5); }
+.sheet--confirm { width: min(420px, calc(100% - 1.5rem)); }
+.sheet--confirm p { margin: 0; }
+.sheet--confirm .btn--danger-solid { background: #b83a3a; color: #fff; border-color: #b83a3a; }
+.sheet--confirm .btn--danger-solid:hover { background: #9a2f2f; }
 .sheet form { display: flex; flex-direction: column; max-height: calc(100dvh - 2rem); }
 .sheet__head { display: flex; align-items: center; justify-content: space-between; padding: .9rem 1.25rem; border-bottom: 1px solid var(--border); }
 .sheet__head h2 { margin: 0; font-size: 1.2rem; }
@@ -126,3 +130,7 @@ body.dialog-open .fab { display: none !important; }
 @media (max-width: 380px) {
   .tipo-chip > span { font-size: .75rem; }
 }
+
+/* ---------- Prioridad: urgente / importante ---------- */
+.badge--urg { background: #fde3e3; color: #8c2a2a; }
+.badge--imp { background: #e1ecf9; color: #254f80; }
