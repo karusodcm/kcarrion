@@ -4,6 +4,6 @@
    3. Pégalas aquí. La clave anon es pública por diseño; NUNCA pongas aquí la clave "service_role".
    Mientras estén vacías, el sitio funciona en MODO DEMOSTRACIÓN (sin Supabase, solo en este navegador). */
 window.KCARRION_CONFIG = {
-  SUPABASE_URL: "",
-  SUPABASE_ANON_KEY: ""
+  SUPABASE_URL: "https://azlfnnmthylualkdbsrq.supabase.co",
+  SUPABASE_ANON_KEY: "sb_publishable_WRqogDpy-DCDe7UFet68OQ_K6dITXaD"
 };

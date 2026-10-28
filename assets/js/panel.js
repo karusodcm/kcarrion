@@ -1,7 +1,10 @@
 /* Panel privado de kcarrion: agenda (calendario), pacientes/historial y notas.
    Los datos viven en localStorage, separados por usuario: "kcarrion:data:<id>".
    Las entradas de la agenda se guardan en data.citas; el campo "tipo" distingue
-   cita, reunión, evento, charla, reservado y no disponible (sin tipo = cita). */
+   cita, reunión, turno, reservado y no disponible (sin tipo = cita).
+   Las tareas viven en data.tareas ({texto, hecha, importante}).
+   Reunión guarda un "subtipo" (reunión, charla, evento u otros) y turno guarda
+   "turno" (mañana, tarde o noche). */
 (function () {
   "use strict";
 
@@ -14,13 +17,34 @@
   const TIPOS = {
     cita:      { label: "Cita",          icon: "🩺", color: "#3b958d" },
     reunion:   { label: "Reunión",       icon: "👥", color: "#3f78b5" },
-    evento:    { label: "Evento",        icon: "🎉", color: "#d08a1e" },
-    charla:    { label: "Charla",        icon: "🎤", color: "#cf5a5a" },
+    turno:     { label: "Turno",         icon: "🕒", color: "#8a63b8", block: true, sinCruce: true },
     reservado: { label: "Reservado",     icon: "🔖", color: "#7a8a3a", block: true },
     nodisp:    { label: "No disponible", icon: "⛔", color: "#6b7a78", block: true }
   };
+  // Opciones que aparecen al elegir "Reunión"
+  const SUBTIPOS = {
+    reunion: { label: "Reunión", icon: "👥" },
+    charla:  { label: "Charla",  icon: "🎤" },
+    evento:  { label: "Evento",  icon: "🎉" },
+    otros:   { label: "Otros",   icon: "📌" }
+  };
+  // Opciones que aparecen al elegir "Turno"
+  const TURNOS = {
+    manana: { label: "Mañana", ini: "06:00", fin: "13:00" },
+    tarde:  { label: "Tarde",  ini: "13:00", fin: "19:00" },
+    noche:  { label: "Noche",  ini: "19:00", fin: "23:59" }
+  };
   const tipoOf = (c) => (TIPOS[c.tipo] ? c.tipo : "cita");
   const isBlock = (c) => Boolean(TIPOS[tipoOf(c)].block);
+  const subOf = (c) => (SUBTIPOS[c.subtipo] ? c.subtipo : "reunion");
+  const turnoOf = (c) => (TURNOS[c.turno] ? c.turno : "manana");
+  const iconOf = (c) => (tipoOf(c) === "reunion" ? SUBTIPOS[subOf(c)].icon : TIPOS[tipoOf(c)].icon);
+  const labelOf = (c) => {
+    const t = tipoOf(c);
+    if (t === "reunion") return SUBTIPOS[subOf(c)].label;
+    if (t === "turno") return "Turno · " + TURNOS[turnoOf(c)].label;
+    return TIPOS[t].label;
+  };
 
   // ---------- Fechas y horas ----------
   const pad = (n) => String(n).padStart(2, "0");
@@ -46,12 +70,17 @@
   let selected = null;                       // paciente seleccionado
   let selDate = today();                     // día seleccionado en el calendario
   let cal = { y: new Date().getFullYear(), m: new Date().getMonth() };
+  let tareasComp = true;                     // sección "Completado" desplegada
 
   // ---------- Datos ----------
-  function empty() { return { pacientes: [], citas: [], notas: [], evoluciones: [] }; }
+  function empty() { return { pacientes: [], citas: [], notas: [], evoluciones: [], tareas: [] }; }
   function normalize(d) {
     const out = empty();
     if (d && typeof d === "object") Object.keys(out).forEach((k) => { if (Array.isArray(d[k])) out[k] = d[k]; });
+    // Migración: "charla" y "evento" ahora son subtipos de reunión
+    out.citas.forEach((c) => {
+      if (c && (c.tipo === "charla" || c.tipo === "evento")) { c.subtipo = c.tipo; c.tipo = "reunion"; }
+    });
     return out;
   }
   function load() {
@@ -73,19 +102,21 @@
     return [s, e];
   }
   function timeLabel(c) {
+    if (tipoOf(c) === "turno") return TURNOS[turnoOf(c)].label;
     if (c.todoDia) return "Todo el día";
     if (c.horaFin) return c.hora + "–" + c.horaFin;
     if (c.duracion) return c.hora + "–" + fromMin(toMin(c.hora) + Number(c.duracion));
     return c.hora || "";
   }
-  const titleOf = (c) => c.motivo || (tipoOf(c) === "cita" ? (c.area || "Cita") : TIPOS[tipoOf(c)].label);
+  const titleOf = (c) => c.motivo || (tipoOf(c) === "cita" ? (c.area || "Cita")
+    : tipoOf(c) === "turno" ? "Turno de " + TURNOS[turnoOf(c)].label.toLowerCase() : labelOf(c));
   const sortItems = (arr) => arr.slice().sort((a, b) =>
     a.fecha.localeCompare(b.fecha) || ((a.todoDia ? 0 : 1) - (b.todoDia ? 0 : 1)) || (a.hora || "").localeCompare(b.hora || ""));
 
   function findOverlap(n, ignoreId) {
     const [s, e] = range(n);
     return data.citas.find((c) => {
-      if (c.id === ignoreId || c.fecha !== n.fecha || c.estado === "cancelada") return false;
+      if (c.id === ignoreId || c.fecha !== n.fecha || c.estado === "cancelada" || TIPOS[tipoOf(c)].sinCruce) return false;
       const [s2, e2] = range(c);
       return s < e2 && s2 < e;
     });
@@ -113,9 +144,10 @@
     if (c.importante) badge += ' <span class="badge badge--imp">Importante</span>';
     const cls = c.estado === "atendida" ? " item--done" : c.estado === "cancelada" ? " item--cancel" : "";
     const name = t === "cita" ? (patientName(c.pacienteId) || "Personal") : "";
-    const meta = [T.label, name, t === "cita" ? c.area : "", c.lugar].filter(Boolean).join(" · ");
-    const whenMain = c.todoDia ? "Todo el día" : esc(c.hora);
-    const whenSmall = opts.hideDate ? (c.todoDia || !c.horaFin ? "" : "– " + esc(c.horaFin)) : esc(shortDate(c.fecha));
+    const meta = [labelOf(c), name, t === "cita" ? c.area : "", c.lugar].filter(Boolean).join(" · ");
+    const esTurno = t === "turno";
+    const whenMain = esTurno ? esc(TURNOS[turnoOf(c)].label) : c.todoDia ? "Todo el día" : esc(c.hora);
+    const whenSmall = opts.hideDate ? (esTurno || c.todoDia || !c.horaFin ? "" : "– " + esc(c.horaFin)) : esc(shortDate(c.fecha));
 
     const id = esc(c.id);
     let actions = "";
@@ -131,7 +163,7 @@
     return `<div class="item item--t${cls}" style="--c:${T.color}">
       <div class="item__when"><span>${whenMain}</span><small>${whenSmall}</small></div>
       <div>
-        <div class="item__title"><span aria-hidden="true">${T.icon}</span> ${esc(titleOf(c))} ${badge}</div>
+        <div class="item__title"><span aria-hidden="true">${iconOf(c)}</span> ${esc(titleOf(c))} ${badge}</div>
         <div class="item__meta">${esc(meta)}</div>
       </div>
       <div class="item__actions">${actions}</div>
@@ -190,7 +222,7 @@
       const blocked = items.some((c) => tipoOf(c) === "nodisp" && c.todoDia);
       const cls = ["cal-day", d.getMonth() !== m ? "is-out" : "", ds === t ? "is-today" : "", blocked ? "is-blocked" : ""].filter(Boolean).join(" ");
       const chips = items.slice(0, 2).map((c) =>
-        `<span class="cal-chip" style="--c:${TIPOS[tipoOf(c)].color}">${c.todoDia ? "" : esc(c.hora) + " "}${esc(titleOf(c))}</span>`).join("");
+        `<span class="cal-chip" style="--c:${TIPOS[tipoOf(c)].color}">${c.todoDia || tipoOf(c) === "turno" ? "" : esc(c.hora) + " "}${esc(titleOf(c))}</span>`).join("");
       const more = items.length > 2 ? `<span class="cal-more">+${items.length - 2} más</span>` : "";
       const dots = items.length ? `<span class="cal-dots">${items.slice(0, 4).map((c) => `<i style="--c:${TIPOS[tipoOf(c)].color}"></i>`).join("")}</span>` : "";
       const label = d.toLocaleDateString("es-PE", { day: "numeric", month: "long" }) + (items.length ? ", " + items.length + (items.length === 1 ? " actividad" : " actividades") : ", sin actividades");
@@ -301,6 +333,33 @@
       : '<div class="empty">Todavía no tienes notas.</div>';
   }
 
+  function tareaItem(t) {
+    const id = esc(t.id);
+    return `<div class="tarea${t.hecha ? " tarea--hecha" : ""}">
+      <button type="button" class="tarea__check" data-action="t-check" data-id="${id}" aria-pressed="${Boolean(t.hecha)}"
+        aria-label="${t.hecha ? "Marcar como pendiente" : "Marcar como completada"}: ${esc(t.texto)}">${t.hecha ? "✓" : ""}</button>
+      <span class="tarea__texto">${esc(t.texto)}</span>
+      <button type="button" class="tarea__star" data-action="t-star" data-id="${id}" aria-pressed="${Boolean(t.importante)}"
+        aria-label="Marcar como importante">${t.importante ? "★" : "☆"}</button>
+      <button type="button" class="btn btn--danger btn--xs" data-action="t-del" data-id="${id}" aria-label="Eliminar tarea">Eliminar</button>
+    </div>`;
+  }
+
+  function renderTareas() {
+    const pend = data.tareas.filter((t) => !t.hecha)
+      .sort((a, b) => (Number(Boolean(b.importante)) - Number(Boolean(a.importante))) || (b.creada || "").localeCompare(a.creada || ""));
+    const hechas = data.tareas.filter((t) => t.hecha)
+      .sort((a, b) => (b.completada || "").localeCompare(a.completada || ""));
+    $("#lista-tareas").innerHTML = pend.length ? pend.map(tareaItem).join("") : '<div class="empty">No tienes tareas pendientes.</div>';
+    $("#t-resumen").textContent = pend.length + (pend.length === 1 ? " pendiente" : " pendientes");
+    $("#t-ncomp").textContent = hechas.length;
+    $("#t-toggle").hidden = !hechas.length;
+    $("#t-toggle").setAttribute("aria-expanded", String(tareasComp));
+    $("#t-flecha").textContent = tareasComp ? "▾" : "▸";
+    $("#lista-completadas").innerHTML = hechas.map(tareaItem).join("");
+    $("#lista-completadas").hidden = !hechas.length || !tareasComp;
+  }
+
   function renderAll() {
     renderSelects();
     renderStats();
@@ -310,6 +369,7 @@
     renderLista();
     renderPacientes();
     renderNotas();
+    renderTareas();
   }
 
   // ---------- Formulario de agenda (ventana / hoja inferior) ----------
@@ -320,11 +380,16 @@
     const f = evForm();
     const t = f.elements["tipo"].value || "cita";
     const T = TIPOS[t];
+    const esTurno = t === "turno";
     $("#f-paciente").hidden = t !== "cita";
-    $("#f-horas").hidden = f.todoDia.checked;
+    $("#f-subtipo").hidden = t !== "reunion";
+    $("#f-turno").hidden = !esTurno;
+    $("#f-todo").hidden = esTurno;
+    $("#f-horas").hidden = esTurno || f.todoDia.checked;
     const lbl = $("#l-titulo");
     lbl.textContent = t === "cita" ? "Motivo (opcional)" : T.block ? "Nota (opcional)" : "Título";
-    $("#ev-motivo").placeholder = t === "cita" ? "Valoración inicial, seguimiento…" : T.block ? "Ej.: capacitación, trámite…" : "";
+    $("#ev-motivo").placeholder = t === "cita" ? "Valoración inicial, seguimiento…"
+      : esTurno ? "Ej.: guardia, consultorio…" : T.block ? "Ej.: capacitación, trámite…" : "";
   }
 
   function openDialog(opts = {}) {
@@ -337,6 +402,8 @@
     f.elements["eid"].value = c ? c.id : "";
     f.elements["tipo"].value = c ? tipoOf(c) : (opts.tipo || "cita");
     f.pacienteId.value = c ? (c.pacienteId || "") : "";
+    f.subtipo.value = c ? subOf(c) : "reunion";
+    f.turno.value = c ? turnoOf(c) : "manana";
     f.motivo.value = c ? (c.motivo || "") : "";
     f.fecha.value = c ? c.fecha : (opts.fecha || selDate);
     f.todoDia.checked = c ? Boolean(c.todoDia) : false;
@@ -359,6 +426,8 @@
     $("#ev-tipos").insertAdjacentHTML("beforeend", Object.entries(TIPOS).map(([k, T]) =>
       `<label class="tipo-chip" style="--c:${T.color}"><input type="radio" name="tipo" value="${k}"><span><span aria-hidden="true">${T.icon}</span>${esc(T.label)}</span></label>`).join(""));
     $("#leyenda").innerHTML = Object.values(TIPOS).map((T) => `<span style="--c:${T.color}">${esc(T.label)}</span>`).join("");
+    $("#ev-subtipo").innerHTML = Object.entries(SUBTIPOS).map(([k, S]) => `<option value="${k}">${esc(S.label)}</option>`).join("");
+    $("#ev-turno").innerHTML = Object.entries(TURNOS).map(([k, S]) => `<option value="${k}">${esc(S.label)}</option>`).join("");
   }
 
   $("#ev-form").addEventListener("change", (e) => {
@@ -374,10 +443,12 @@
     e.preventDefault();
     const f = e.target, m = $("#ev-msg");
     const tipo = f.elements["tipo"].value || "cita";
-    const todoDia = f.todoDia.checked;
+    const esTurno = tipo === "turno";
+    const turnoSel = TURNOS[f.turno.value] ? f.turno.value : "manana";
+    const todoDia = esTurno ? false : f.todoDia.checked;
     const motivo = f.motivo.value.trim();
     if (!f.fecha.value) return flash(m, "Indica la fecha.");
-    if (!todoDia) {
+    if (!todoDia && !esTurno) {
       if (!f.hora.value) return flash(m, "Indica la hora de inicio.");
       if (f.horaFin.value && toMin(f.horaFin.value) <= toMin(f.hora.value)) return flash(m, "La hora de fin debe ser posterior a la de inicio.");
     }
@@ -390,13 +461,16 @@
       pacienteId: tipo === "cita" ? f.pacienteId.value : "",
       area: prev ? (prev.area || "") : "",
       fecha: f.fecha.value, todoDia,
-      hora: todoDia ? "" : f.hora.value, horaFin: todoDia ? "" : f.horaFin.value,
+      subtipo: tipo === "reunion" ? f.subtipo.value : "",
+      turno: esTurno ? turnoSel : "",
+      hora: esTurno ? TURNOS[turnoSel].ini : todoDia ? "" : f.hora.value,
+      horaFin: esTurno ? TURNOS[turnoSel].fin : todoDia ? "" : f.horaFin.value,
       motivo, lugar: f.lugar.value.trim(),
       urgente: f.urgencia.value === "si",
       importante: f.importancia.value === "si"
     };
 
-    const clash = findOverlap(item, id);
+    const clash = TIPOS[tipo].sinCruce ? null : findOverlap(item, id);
     if (clash && !(await askConfirm("Se cruza con «" + titleOf(clash) + "» (" + timeLabel(clash) + "). ¿Guardar de todas formas?", { titulo: "Horario cruzado", si: "Guardar" }))) return;
 
     if (prev) Object.assign(prev, item); else data.citas.push(item);
@@ -467,6 +541,18 @@
     commit();
   });
 
+  $("#tarea-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const input = $("#t-texto");
+    const texto = input.value.trim();
+    if (!texto) { input.focus(); return; }
+    data.tareas.push({ id: uid(), texto, hecha: false, importante: false, creada: new Date().toISOString(), completada: "" });
+    input.value = "";
+    commit();
+    input.focus();
+  });
+  $("#t-toggle").addEventListener("click", () => { tareasComp = !tareasComp; renderTareas(); });
+
   // ---------- Acciones ----------
   function setEstado(id, estado) { const c = data.citas.find((x) => x.id === id); if (c) { c.estado = estado; commit(); } }
 
@@ -508,6 +594,19 @@
         return;
       case "evo-del":
         if (await askConfirm("¿Eliminar este registro del historial?", { titulo: "Eliminar registro", si: "Eliminar", peligro: true })) { data.evoluciones = data.evoluciones.filter((x) => x.id !== id); commit(); }
+        return;
+      case "t-check": {
+        const t = data.tareas.find((x) => x.id === id);
+        if (t) { t.hecha = !t.hecha; t.completada = t.hecha ? new Date().toISOString() : ""; commit(); }
+        return;
+      }
+      case "t-star": {
+        const t = data.tareas.find((x) => x.id === id);
+        if (t) { t.importante = !t.importante; commit(); }
+        return;
+      }
+      case "t-del":
+        if (await askConfirm("¿Eliminar esta tarea?", { titulo: "Eliminar tarea", si: "Eliminar", peligro: true })) { data.tareas = data.tareas.filter((x) => x.id !== id); commit(); }
         return;
       case "nota-del":
         if (await askConfirm("¿Eliminar esta nota?", { titulo: "Eliminar nota", si: "Eliminar", peligro: true })) { data.notas = data.notas.filter((n) => n.id !== id); commit(); }

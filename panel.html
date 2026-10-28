@@ -24,6 +24,7 @@
 
       <div class="tabs" role="tablist">
         <button class="tab" role="tab" data-tab="agenda" aria-selected="true">Agenda</button>
+        <button class="tab" role="tab" data-tab="tareas" aria-selected="false">Tareas</button>
         <button class="tab" role="tab" data-tab="resumen" aria-selected="false">Resumen</button>
         <button class="tab" role="tab" data-tab="pacientes" aria-selected="false">Pacientes e historial</button>
         <button class="tab" role="tab" data-tab="notas" aria-selected="false">Notas</button>
@@ -88,12 +89,14 @@
               <input type="hidden" name="eid">
               <fieldset class="tipos" id="ev-tipos"><legend class="sr">Tipo de entrada</legend></fieldset>
 
+              <div class="field" id="f-subtipo" hidden><label for="ev-subtipo">Tipo de reunión</label><select class="input" id="ev-subtipo" name="subtipo"></select></div>
+              <div class="field" id="f-turno" hidden><label for="ev-turno">Turno</label><select class="input" id="ev-turno" name="turno"></select></div>
               <div class="field" id="f-paciente"><label for="ev-paciente">Paciente / cliente</label><select class="input" id="ev-paciente" name="pacienteId"></select></div>
               <div class="field"><label for="ev-motivo" id="l-titulo">Motivo</label><input class="input" id="ev-motivo" name="motivo" maxlength="120"></div>
 
               <div class="form-row">
                 <div class="field"><label for="ev-fecha">Fecha</label><input class="input" id="ev-fecha" name="fecha" type="date" required></div>
-                <div class="field checkrow"><label><input type="checkbox" name="todoDia"> Todo el día</label></div>
+                <div class="field checkrow" id="f-todo"><label><input type="checkbox" name="todoDia"> Todo el día</label></div>
               </div>
               <div class="form-row" id="f-horas">
                 <div class="field"><label for="ev-hora">Inicio</label><input class="input" id="ev-hora" name="hora" type="time"></div>
@@ -120,6 +123,29 @@
             </div>
           </form>
         </dialog>
+      </section>
+
+      <!-- TAREAS -->
+      <section class="tab-panel" id="tab-tareas" hidden>
+        <div class="box tareas">
+          <div class="toolbar">
+            <h2 style="margin:0">Tareas</h2>
+            <span class="small" id="t-resumen" aria-live="polite"></span>
+          </div>
+          <div class="list" id="lista-tareas"></div>
+
+          <button type="button" class="tareas__toggle" id="t-toggle" aria-expanded="true" aria-controls="lista-completadas" hidden>
+            <span id="t-flecha" aria-hidden="true">▾</span> Completado <b id="t-ncomp">0</b>
+          </button>
+          <div class="list" id="lista-completadas"></div>
+
+          <form class="tarea-add" id="tarea-form" novalidate>
+            <label class="sr" for="t-texto">Agregar una tarea</label>
+            <span class="tarea-add__plus" aria-hidden="true">+</span>
+            <input class="input" id="t-texto" name="texto" maxlength="200" autocomplete="off" placeholder="Agregar una tarea">
+            <button class="btn btn--primary btn--sm" type="submit">Agregar</button>
+          </form>
+        </div>
       </section>
 
       <!-- PACIENTES -->
