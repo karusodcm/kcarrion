@@ -1,0 +1,128 @@
+/* Navbar y footer del sitio (misma apariencia que index.html), aislados
+   para no chocar con los estilos propios del cuestionario (.nav, .brand, .btn). */
+
+.navbar, .footer {
+  --brand: #3b958d; --brand-600: #2f7f78; --brand-700: #256863; --brand-900: #12312e;
+  --brand-100: #d9eeeb; --brand-50: #eef7f6;
+  --text: #17302d; --text-muted: #5c716e; --border: #dbe8e6;
+  --radius: 16px; --radius-pill: 999px;
+  --shadow: 0 8px 24px rgba(18, 49, 46, 0.08);
+  --shadow-lg: 0 20px 50px rgba(18, 49, 46, 0.12);
+  font-family: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.6;
+  color: var(--text);
+}
+.navbar a, .footer a { text-decoration: none; }
+.navbar a:hover, .footer a:hover { text-decoration: none; }
+.navbar p, .footer p { margin: 0 0 1em; }
+.container { width: min(1160px, 100% - 2.5rem); margin-inline: auto; }
+
+/* ---------- Navbar ---------- */
+.navbar {
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(255, 255, 255, .88);
+  backdrop-filter: saturate(160%) blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+.navbar__inner { display: flex; align-items: center; justify-content: space-between; height: 72px; gap: 1rem; }
+.navbar .brand { display: inline-flex; align-items: center; gap: .6rem; font-weight: 800; font-size: 1.35rem; color: var(--brand-900); letter-spacing: -0.03em; }
+.brand__mark {
+  width: 34px; height: 34px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--brand), var(--brand-700));
+  display: grid; place-items: center; color: #fff; font-size: 1.05rem;
+}
+.navbar .nav { display: flex; align-items: center; justify-content: flex-start; gap: .25rem; margin: 0 0 0 auto; }
+.navbar .nav a {
+  padding: .5rem .9rem; border-radius: var(--radius-pill);
+  color: var(--text); font-weight: 600; font-size: .95rem;
+}
+.navbar .nav a:hover { background: var(--brand-50); color: var(--brand-700); }
+.nav-toggle {
+  display: none; background: none; border: 1px solid var(--border); border-radius: 10px;
+  width: 42px; height: 42px; font-size: 1.2rem; cursor: pointer; color: var(--brand-900);
+}
+
+/* ---------- Menú de usuario ---------- */
+.user-menu { position: relative; margin-left: .75rem; }
+.user-menu__btn {
+  position: relative; width: 44px; height: 44px; display: grid; place-items: center; padding: 0;
+  border: 1px solid var(--border); border-radius: 50%; background: #fff; color: var(--brand-900); cursor: pointer;
+}
+.user-menu__btn:hover, .user-menu__btn[aria-expanded="true"] { background: var(--brand-50); border-color: var(--brand); color: var(--brand-700); }
+.user-menu__dot { position: absolute; right: 1px; top: 1px; width: 11px; height: 11px; border-radius: 50%; background: #2fa36b; border: 2px solid #fff; }
+.user-menu__panel {
+  position: absolute; right: 0; top: calc(100% + 10px); z-index: 60; width: min(340px, calc(100vw - 2rem));
+  background: #fff; border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-lg); padding: 1.1rem;
+}
+.user-card__hello { margin: 0 0 .9rem; font-weight: 700; color: var(--brand-900); }
+.user-card__links { display: grid; gap: .5rem; }
+.user-card__forgot { text-align: center; font-size: .88rem; padding-top: .35rem; color: var(--brand-700); }
+.user-card__head { display: flex; align-items: center; gap: .75rem; padding-bottom: .9rem; border-bottom: 1px solid var(--border); }
+.user-card__head div { min-width: 0; display: grid; }
+.user-card__head b { color: var(--brand-900); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.user-card__head div span { color: var(--text-muted); font-size: .84rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.user-card__avatar { flex: none; width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; background: var(--brand); color: #fff; font-weight: 800; }
+.user-card__list { margin: .8rem 0 1rem; display: grid; gap: .55rem; max-height: 46vh; overflow: auto; }
+.user-card__row { display: grid; gap: .05rem; }
+.user-card__row dt { font-size: .72rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--brand-700); }
+.user-card__row dd { margin: 0; font-size: .94rem; word-break: break-word; }
+.user-card__empty { color: var(--text-muted); font-style: italic; }
+
+/* Botones dentro del navbar (pisan el .btn del cuestionario) */
+.navbar .btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+  font: inherit; font-weight: 700; font-size: .92rem;
+  padding: .55rem 1.1rem;
+  border-radius: var(--radius-pill);
+  border: 2px solid transparent;
+  cursor: pointer; text-decoration: none;
+}
+.navbar .btn--block { width: 100%; }
+.navbar .btn--primary { background: var(--brand); color: #fff; border-bottom: 2px solid transparent; box-shadow: 0 6px 16px rgba(59, 149, 141, .35); }
+.navbar .btn--primary:hover { background: var(--brand-600); }
+.navbar .btn--outline { background: transparent; color: var(--brand-700); border-color: var(--brand); }
+.navbar .btn--outline:hover { background: var(--brand-50); }
+
+/* ---------- Footer ---------- */
+.footer { background: var(--brand-900); color: rgba(255, 255, 255, .78); padding: 4rem 0 2rem; margin-top: 2rem; }
+.footer a { color: rgba(255, 255, 255, .78); }
+.footer a:hover { color: #fff; }
+.footer__grid { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 2.5rem; }
+.footer h4 { color: #fff; font-size: .95rem; margin: 0 0 1rem; font-family: inherit; }
+.footer ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .6rem; font-size: .94rem; }
+.footer .brand { display: inline-flex; align-items: center; gap: .6rem; font-weight: 800; font-size: 1.35rem; color: #fff; letter-spacing: -0.03em; margin-bottom: 1rem; }
+.footer__bottom { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid rgba(255, 255, 255, .14);
+  display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; font-size: .88rem; }
+.social { display: flex; gap: .6rem; }
+.social a { width: 38px; height: 38px; border-radius: 50%; background: rgba(255, 255, 255, .1); display: grid; place-items: center; font-size: .85rem; font-weight: 700; color: #fff; }
+.social a:hover { background: var(--brand); }
+
+/* En el cuestionario la tarjeta ocupa toda la pantalla: sin footer */
+body.modo-quiz .footer { display: none; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1040px) {
+  .nav-toggle { display: block; }
+  .navbar .nav {
+    position: absolute; top: 72px; left: 0; right: 0; background: #fff;
+    flex-direction: column; align-items: stretch; padding: 1rem 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border); box-shadow: var(--shadow);
+    display: none; margin: 0;
+  }
+  .navbar .nav.is-open { display: flex; }
+  .user-menu { margin-left: auto; margin-right: .5rem; }
+}
+@media (max-width: 960px) {
+  .footer__grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 620px) {
+  .footer__grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .user-menu { position: static; }
+  .user-menu__panel { position: fixed; top: 80px; left: 1rem; right: 1rem; width: auto; }
+}
+
+[hidden] { display: none !important; }
+/* Alto del navbar (72px + borde), usado por body.modo-quiz .app en styles.css */
+body { --sx-nav-h: 73px; }
