@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Calificación CASM83-R91</title>
+  <link rel="stylesheet" href="cam83.css">
+</head>
+<body>
+<div class="app">
+  <h1>Inventario de Intereses Vocacionales y Ocupacionales</h1>
+  <p class="codigo">CASM83-R91 · Hoja de calificación</p>
+
+  <!-- TABLA PARA MARCAR -->
+  <section id="vista-tabla" class="card">
+    <div class="barra-sup">
+      <label class="campo" for="sexo">Baremo según sexo:
+        <select id="sexo">
+          <option value="">Selecciona</option>
+          <option value="varon">Varón</option>
+          <option value="mujer">Mujer</option>
+        </select>
+      </label>
+      <span class="progreso" id="progreso">0 de 143 preguntas marcadas</span>
+    </div>
+    <div class="barra"><div id="barra-fill"></div></div>
+    <p class="ayuda">Cada casilla es una pregunta (1 a 143, por filas). Marca <strong>A</strong>, <strong>B</strong> o ambas según la hoja de respuestas.
+      Las marcas tachadas no suman: en VERA cuenta solo la A y en CONS se comparan pares de ítems.</p>
+    <div class="tabla-wrap"><table id="tabla"></table></div>
+    <p id="mensaje" class="mensaje" role="alert"></p>
+    <div class="acciones">
+      <button type="button" id="btn-resultados" class="btn">Ver resultados</button>
+      <button type="button" id="btn-limpiar" class="btn pel">Limpiar tabla</button>
+    </div>
+  </section>
+
+  <!-- RESULTADOS -->
+  <section id="vista-resultados" class="hidden">
+    <div class="card">
+      <h2 style="margin-top:0">Validez de la aplicación</h2>
+      <p class="ayuda">Con 5 o más respuestas "A" en VERA, o 5 o más inconsistencias, la aplicación se anula y se debe aplicar retest.</p>
+      <div id="validez" class="validez"></div>
+    </div>
+    <div class="card">
+      <h2 style="margin-top:0">Puntajes, categoría y percentil</h2>
+      <p class="ayuda">PD = A de la columna + B de la fila (máximo 22). Categoría y percentil según el dispersigrama de <strong id="baremo-sexo"></strong>; el baremo da el percentil como rango de cada categoría.</p>
+      <div class="tabla-wrap"><table id="tabla-puntajes" class="compacta"></table></div>
+    </div>
+    <div class="card">
+      <h2 style="margin-top:0">Perfil de intereses</h2>
+      <div class="grafica-wrap"><div id="grafica"></div></div>
+      <div id="leyenda" class="leyenda"></div>
+    </div>
+    <div class="acciones no-print">
+      <button type="button" id="btn-volver" class="btn sec">&larr; Volver a la tabla</button>
+      <button type="button" id="btn-imprimir" class="btn sec">Imprimir</button>
+    </div>
+  </section>
+</div>
+
+<script src="cam83.js"></script>
+</body>
+</html>
