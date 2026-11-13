@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Buscador de Mesas de Partes Virtuales</title>
+  <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+  <header class="cabecera">
+    <div class="contenedor">
+      <h1>Mesas de Partes Virtuales</h1>
+      <p class="subtitulo">Busca una entidad por nombre o RUC y abre su enlace de trámite.</p>
+
+      <div class="buscador">
+        <label for="q" class="sr-only">Buscar por nombre o RUC</label>
+        <input id="q" type="search" placeholder="Ejemplo: hospital loreto, 20131370998, facilita"
+               autocomplete="off" spellcheck="false" autofocus>
+        <button id="limpiar" type="button" class="btn-limpiar" aria-label="Borrar búsqueda" hidden>&times;</button>
+      </div>
+
+      <div class="barra">
+        <div class="filtros" role="group" aria-label="Filtrar por tipo de acceso">
+          <button type="button" class="filtro activo" data-filtro="todos">Todos</button>
+          <button type="button" class="filtro" data-filtro="enlace">Con enlace web</button>
+          <button type="button" class="filtro" data-filtro="correo">Solo correo</button>
+        </div>
+        <p id="contador" class="contador" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </header>
+
+  <main class="contenedor">
+    <div id="aviso" class="aviso" hidden></div>
+
+    <div class="tabla" role="table" aria-label="Resultados">
+      <div class="fila encabezado" role="row">
+        <div role="columnheader">RUC</div>
+        <div role="columnheader">Entidad</div>
+        <div role="columnheader">Mesa de partes</div>
+      </div>
+      <div id="resultados" role="rowgroup"></div>
+    </div>
+
+    <p id="vacio" class="vacio" hidden>No hay resultados. Prueba con menos palabras o revisa el RUC.</p>
+    <button id="mas" type="button" class="btn-mas" hidden></button>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
